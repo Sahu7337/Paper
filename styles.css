@@ -765,6 +765,7 @@ body.hide-formatting-toolbar #floating-toolbar {
   cursor: text;
   min-height: 1.3em;
   transition: opacity var(--transition-fast);
+  position: relative;
 }
 
 .doc-title:empty::before,
@@ -773,7 +774,12 @@ body.hide-formatting-toolbar #floating-toolbar {
   color: var(--text-placeholder);
   cursor: text;
   pointer-events: none;
+  user-select: none;
   font-weight: 700;
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
 }
 
 #editor {
@@ -792,15 +798,21 @@ body.hide-formatting-toolbar #floating-toolbar {
   min-height: 50vh;
   tab-size: 2;
   cursor: text;
+  position: relative;
 }
 
 #editor:empty::before,
 #editor[data-empty="true"]::before {
-  content: "Start Writing...";
+  content: "Start writing...";
   color: var(--text-placeholder);
   cursor: text;
   pointer-events: none;
+  user-select: none;
   font-style: normal;
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
 }
 
 /* Typography styles inside editor */
