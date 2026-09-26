@@ -142,6 +142,7 @@
     dictationDoneBtn: document.getElementById('dictation-done-btn'),
     btnDictateTrigger: document.getElementById('btn-dictate-trigger'),
     toastContainer: document.getElementById('toast-container'),
+    appTooltip: document.getElementById('app-tooltip'),
     // Modals
     settingsModal: document.getElementById('settings-modal'),
     exportModal: document.getElementById('export-modal'),
@@ -1594,8 +1595,107 @@ ${bodyHtml}
     }, 2500);
   }
 
+  // --- Custom Tooltip Manager (Overrides Browser Default) ---
+  let tooltipTimer = null;
+  let activeTooltipTarget = null;
+
+  function showCustomTooltip(target) {
+    if (!el.appTooltip || !target) return;
+    const text = target.getAttribute('data-tooltip') || target.getAttribute('title');
+    if (!text) return;
+
+    // Suppress default browser tooltip
+    if (target.hasAttribute('title')) {
+      target.setAttribute('data-tooltip', text);
+      target.removeAttribute('title');
+    }
+    if (!target.hasAttribute('aria-label')) {
+      target.setAttribute('aria-label', text);
+    }
+
+    activeTooltipTarget = target;
+
+    // Parse shortcut format: e.g. "Bold (Ctrl+B)" -> "Bold" and "<kbd>Ctrl+B</kbd>"
+    const match = text.match(/^(.*?)\s*\(([^)]+)\)$/);
+    if (match) {
+      el.appTooltip.innerHTML = `<span>${match[1]}</span><kbd>${match[2]}</kbd>`;
+    } else {
+      el.appTooltip.textContent = text;
+    }
+
+    el.appTooltip.style.left = '-9999px';
+    el.appTooltip.style.top = '-9999px';
+    el.appTooltip.classList.add('visible');
+
+    const targetRect = target.getBoundingClientRect();
+    const tooltipRect = el.appTooltip.getBoundingClientRect();
+
+    let left = targetRect.left + (targetRect.width / 2) - (tooltipRect.width / 2);
+    left = Math.max(8, Math.min(window.innerWidth - tooltipRect.width - 8, left));
+
+    let top = targetRect.top - tooltipRect.height - 7;
+    if (top < 8) {
+      top = targetRect.bottom + 7;
+    }
+
+    el.appTooltip.style.left = `${Math.round(left)}px`;
+    el.appTooltip.style.top = `${Math.round(top)}px`;
+  }
+
+  function hideCustomTooltip() {
+    clearTimeout(tooltipTimer);
+    tooltipTimer = null;
+    activeTooltipTarget = null;
+    if (el.appTooltip) {
+      el.appTooltip.classList.remove('visible');
+    }
+  }
+
+  function setupTooltips() {
+    // Convert existing title attributes on elements to data-tooltip & aria-label
+    document.querySelectorAll('[title]').forEach(item => {
+      const title = item.getAttribute('title');
+      if (title) {
+        item.setAttribute('data-tooltip', title);
+        if (!item.hasAttribute('aria-label')) {
+          item.setAttribute('aria-label', title);
+        }
+        item.removeAttribute('title');
+      }
+    });
+
+    document.addEventListener('mouseover', (e) => {
+      const target = e.target.closest('[data-tooltip], [title]');
+      if (!target || target === activeTooltipTarget) return;
+
+      clearTimeout(tooltipTimer);
+      if (target.hasAttribute('title')) {
+        const text = target.getAttribute('title');
+        target.setAttribute('data-tooltip', text);
+        target.removeAttribute('title');
+      }
+
+      tooltipTimer = setTimeout(() => {
+        showCustomTooltip(target);
+      }, 130);
+    });
+
+    document.addEventListener('mouseout', (e) => {
+      const target = e.target.closest('[data-tooltip], [title]');
+      if (target) {
+        hideCustomTooltip();
+      }
+    });
+
+    document.addEventListener('mousedown', hideCustomTooltip);
+    document.addEventListener('scroll', hideCustomTooltip, true);
+    window.addEventListener('blur', hideCustomTooltip);
+  }
+
   // --- Event Listeners Setup ---
   function setupEventListeners() {
+    setupTooltips();
+
     // Mouse movement reveals UI
     document.addEventListener('mousemove', handleMouseMove);
 
