@@ -428,32 +428,15 @@
     }
   }
 
-  // --- UI Auto-Disappearance on Typing ---
-  let typingFadeTimer = null;
+  // --- UI Activity on Typing ---
   function handleTypingActivity() {
-    // Add typing-active class to smoothly fade out headers, footers & toolbar
-    document.body.classList.add('typing-active');
     el.floatingToolbar.classList.remove('visible');
-    if (state.slashMenuOpen) {
-      hideSlashMenu();
-    }
-
     // Immediately reflect lines on the favicon and update tab title
     updateFaviconAndTitle();
-
-    clearTimeout(typingFadeTimer);
-    // After 2.5s of no keypress, smoothly bring UI back
-    typingFadeTimer = setTimeout(() => {
-      document.body.classList.remove('typing-active');
-    }, 2500);
   }
 
   function handleMouseMove() {
-    // Mouse movement brings the UI back immediately
-    if (document.body.classList.contains('typing-active')) {
-      document.body.classList.remove('typing-active');
-    }
-    clearTimeout(typingFadeTimer);
+    // Keep UI responsive
   }
 
   // --- UI Rendering ---
@@ -862,7 +845,7 @@
     const appRect = el.app.getBoundingClientRect();
 
     el.slashMenu.style.top = `${rect.bottom - appRect.top + 6}px`;
-    el.slashMenu.style.left = `${Math.max(16, Math.min(window.innerWidth - 270, rect.left - appRect.left))}px`;
+    el.slashMenu.style.left = `${Math.max(16, Math.min(window.innerWidth - 215, rect.left - appRect.left))}px`;
     el.slashMenu.classList.add('visible');
     state.slashMenuOpen = true;
     slashSelectedIndex = 0;
@@ -1112,9 +1095,106 @@
     selection.addRange(r);
   }
 
-  // --- Typewriter & Focus Mode Handlers ---
+  // --- Smart Auto-Capitalization & Autocorrect (QoL) ---
+  function applySmartCapitalization(element, e) {
+    if (!e.data || e.inputType !== 'insertText') return;
+
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    const range = sel.getRangeAt(0);
+    if (!range.collapsed) return;
+
+    const node = range.startContainer;
+    const offset = range.startOffset;
+
+    // Do not alter code blocks
+    let p = node;
+    while (p && p !== element) {
+      if (p.tagName === 'PRE' || p.tagName === 'CODE') return;
+      p = p.parentElement;
+    }
+
+    // Get text before cursor in current block
+    let textBefore = '';
+    if (node.nodeType === Node.TEXT_NODE) {
+      textBefore = node.textContent.slice(0, offset);
+    } else {
+      const preRange = document.createRange();
+      preRange.selectNodeContents(element);
+      preRange.setEnd(node, offset);
+      textBefore = preRange.toString();
+    }
+
+    // Feature 1: First letter of document / line, or after dot / exclamation / question
+    if (/^[a-z]$/.test(e.data)) {
+      const isStart = /^\s*$/.test(textBefore);
+      const isAfterSentence = /(?:[.!?]["'”’]?\s+|\n\s*)$/.test(textBefore);
+
+      if (isStart || isAfterSentence) {
+        e.preventDefault();
+        document.execCommand('insertText', false, e.data.toUpperCase());
+        return;
+      }
+    }
+
+    // Feature 2: Standalone 'i' and contractions ('i'll', 'i'm', 'i'd', 'i've') before space or punctuation
+    if (e.data === ' ' || /[.,!?;:]/.test(e.data)) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const match = textBefore.match(/(^|[\s"'\(\[])(i|i['’]ll|i['’]m|i['’]d|i['’]ve|i['’]d['’]ve|i['’]ll['’]ve)$/);
+        if (match) {
+          const word = match[2];
+          const repl = word.charAt(0).toUpperCase() + word.slice(1);
+          e.preventDefault();
+          const repRange = document.createRange();
+          repRange.setStart(node, offset - word.length);
+          repRange.setEnd(node, offset);
+          sel.removeAllRanges();
+          sel.addRange(repRange);
+          document.execCommand('insertText', false, repl + e.data);
+          return;
+        }
+      }
+    }
+  }
+
+  function applySmartCapitalizationTextarea(textarea, e) {
+    if (!e.data || e.inputType !== 'insertText') return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    if (start !== end) return;
+
+    const val = textarea.value;
+    const textBefore = val.slice(0, start);
+
+    // Feature 1: First letter or after dot
+    if (/^[a-z]$/.test(e.data)) {
+      const isStart = /^\s*$/.test(textBefore);
+      const isAfterSentence = /(?:[.!?]["'”’]?\s+|\n\s*)$/.test(textBefore);
+      if (isStart || isAfterSentence) {
+        e.preventDefault();
+        textarea.setRangeText(e.data.toUpperCase(), start, end, 'end');
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        return;
+      }
+    }
+
+    // Feature 2: Standalone i and contractions
+    if (e.data === ' ' || /[.,!?;:]/.test(e.data)) {
+      const match = textBefore.match(/(^|[\s"'\(\[])(i|i['’]ll|i['’]m|i['’]d|i['’]ve|i['’]d['’]ve|i['’]ll['’]ve)$/);
+      if (match) {
+        e.preventDefault();
+        const word = match[2];
+        const repl = word.charAt(0).toUpperCase() + word.slice(1);
+        textarea.setRangeText(repl + e.data, start - word.length, end, 'end');
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        return;
+      }
+    }
+  }
+
+  // --- Active Line Focus ---
   function updateActiveLineFocus() {
-    if (!state.settings.focusMode && !state.settings.typewriterMode) return;
+    if (!state.settings.focusMode) return;
 
     const sel = window.getSelection();
     if (!sel.rangeCount) return;
@@ -1126,21 +1206,9 @@
     }
 
     if (node && node.parentElement === el.editor) {
-      if (state.settings.focusMode) {
-        Array.from(el.editor.children).forEach(child => {
-          child.classList.toggle('active-line', child === node);
-        });
-      }
-
-      if (state.settings.typewriterMode) {
-        const rect = node.getBoundingClientRect();
-        const targetY = window.innerHeight / 2;
-        const currentY = rect.top + rect.height / 2;
-        const diff = currentY - targetY;
-        if (Math.abs(diff) > 20) {
-          el.workspace.scrollBy({ top: diff, behavior: 'smooth' });
-        }
-      }
+      Array.from(el.editor.children).forEach(child => {
+        child.classList.toggle('active-line', child === node);
+      });
     }
   }
 
@@ -1553,6 +1621,10 @@ ${bodyHtml}
         updateMetrics();
       });
 
+      el.docTitle.addEventListener('beforeinput', (e) => {
+        applySmartCapitalization(el.docTitle, e);
+      });
+
       el.docTitle.addEventListener('keydown', (e) => {
         handleTypingActivity();
         if (e.key === 'Enter') {
@@ -1600,6 +1672,10 @@ ${bodyHtml}
         }
       });
 
+      el.editor.addEventListener('beforeinput', (e) => {
+        applySmartCapitalization(el.editor, e);
+      });
+
       el.editor.addEventListener('input', () => {
         playKeyClick();
         handleTypingActivity();
@@ -1613,6 +1689,10 @@ ${bodyHtml}
 
     // Markdown Editor Input
     if (el.markdownEditor) {
+      el.markdownEditor.addEventListener('beforeinput', (e) => {
+        applySmartCapitalizationTextarea(el.markdownEditor, e);
+      });
+
       el.markdownEditor.addEventListener('input', () => {
         playKeyClick();
         handleTypingActivity();
@@ -1624,6 +1704,53 @@ ${bodyHtml}
     // Editor Keydown for Shortcuts, Navigation, and Slash Trigger
     if (el.editor) {
       el.editor.addEventListener('keydown', (e) => {
+        // If Slash menu is open, handle navigation keys FIRST before anything else
+        if (state.slashMenuOpen) {
+          const items = Array.from(el.slashMenu.querySelectorAll('.slash-menu-item'));
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            e.stopPropagation();
+            slashSelectedIndex = (slashSelectedIndex + 1) % items.length;
+            updateSlashMenuSelection();
+            items[slashSelectedIndex]?.scrollIntoView({ block: 'nearest' });
+            return;
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            e.stopPropagation();
+            slashSelectedIndex = (slashSelectedIndex - 1 + items.length) % items.length;
+            updateSlashMenuSelection();
+            items[slashSelectedIndex]?.scrollIntoView({ block: 'nearest' });
+            return;
+          } else if (e.key === 'Enter' || e.key === 'Tab') {
+            e.preventDefault();
+            e.stopPropagation();
+            const selected = items[slashSelectedIndex];
+            if (selected) {
+              executeSlashAction(selected.dataset.action);
+            }
+            return;
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            e.stopPropagation();
+            hideSlashMenu();
+            return;
+          } else if (e.key === ' ' || e.key === 'Backspace') {
+            setTimeout(() => {
+              const sel = window.getSelection();
+              if (!sel || !sel.rangeCount) {
+                hideSlashMenu();
+              } else {
+                const range = sel.getRangeAt(0);
+                const text = range.startContainer.textContent || '';
+                const before = text.slice(0, range.startOffset);
+                if (!before.includes('/')) {
+                  hideSlashMenu();
+                }
+              }
+            }, 10);
+          }
+        }
+
         handleTypingActivity();
 
         // ArrowUp when at top of editor jumps to Title
@@ -1664,32 +1791,6 @@ ${bodyHtml}
               showSlashMenu(sel.getRangeAt(0));
             }
           }, 10);
-        }
-
-        // If Slash menu is open, handle navigation
-        if (state.slashMenuOpen) {
-          const items = el.slashMenu.querySelectorAll('.slash-menu-item');
-          if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            slashSelectedIndex = (slashSelectedIndex + 1) % items.length;
-            updateSlashMenuSelection();
-            return;
-          } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            slashSelectedIndex = (slashSelectedIndex - 1 + items.length) % items.length;
-            updateSlashMenuSelection();
-            return;
-          } else if (e.key === 'Enter') {
-            e.preventDefault();
-            const selected = items[slashSelectedIndex];
-            if (selected) {
-              executeSlashAction(selected.dataset.action);
-            }
-            return;
-          } else if (e.key === 'Escape') {
-            hideSlashMenu();
-            return;
-          }
         }
 
         // Tab key indent
@@ -1814,6 +1915,14 @@ ${bodyHtml}
       if (item) {
         executeSlashAction(item.dataset.action);
       }
+    });
+
+    const slashItems = el.slashMenu.querySelectorAll('.slash-menu-item');
+    slashItems.forEach((item, idx) => {
+      item.addEventListener('mouseenter', () => {
+        slashSelectedIndex = idx;
+        updateSlashMenuSelection();
+      });
     });
 
     // Close slash menu on outside click
