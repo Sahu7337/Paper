@@ -1083,7 +1083,7 @@ body.mode-focus #editor > *.active-line {
 .slash-menu {
   position: absolute;
   z-index: 75;
-  width: 185px;
+  width: 200px;
   background: #ffffff;
   border: 1px solid #f0f0f2;
   border-radius: 9px;
@@ -1155,10 +1155,12 @@ html.dark .slash-item-name,
   color: #9ca3af;
   letter-spacing: -0.02em;
   white-space: nowrap;
+  flex-shrink: 0;
+  opacity: 0;
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  transition: color var(--transition-fast);
+  transition: opacity var(--transition-fast), color var(--transition-fast);
 }
 
 html.dark .slash-item-symbol,
@@ -1168,6 +1170,7 @@ html.dark .slash-item-symbol,
 
 .slash-menu-item:hover .slash-item-symbol,
 .slash-menu-item.selected .slash-item-symbol {
+  opacity: 1;
   color: #18181b;
 }
 
@@ -1178,7 +1181,7 @@ html.dark .slash-menu-item.selected .slash-item-symbol,
   color: #ffffff;
 }
 
-/* Dictate shortcut & symbol toggle: Ctrl+D visible only on hover / selected, else disappeared */
+/* Dictate shortcut Ctrl+D visible only on hover / selected, else hidden */
 .slash-item-shortcut {
   margin-left: auto;
   font-family: var(--font-ui);
@@ -1187,12 +1190,22 @@ html.dark .slash-menu-item.selected .slash-item-symbol,
   color: #9ca3af;
   letter-spacing: 0;
   white-space: nowrap;
-  display: none;
+  flex-shrink: 0;
+  opacity: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  transition: opacity var(--transition-fast), color var(--transition-fast);
+}
+
+html.dark .slash-item-shortcut,
+[data-theme="dark"] .slash-item-shortcut {
+  color: #71717a;
 }
 
 .slash-menu-item:hover .slash-item-shortcut,
 .slash-menu-item.selected .slash-item-shortcut {
-  display: inline-block;
+  opacity: 1;
   color: #18181b;
 }
 
@@ -1200,12 +1213,7 @@ html.dark .slash-menu-item:hover .slash-item-shortcut,
 html.dark .slash-menu-item.selected .slash-item-shortcut,
 [data-theme="dark"] .slash-menu-item:hover .slash-item-shortcut,
 [data-theme="dark"] .slash-menu-item.selected .slash-item-shortcut {
-  color: #fafafa;
-}
-
-.slash-menu-item:hover .dictate-symbol,
-.slash-menu-item.selected .dictate-symbol {
-  display: none;
+  color: #ffffff;
 }
 
 .slash-divider {
