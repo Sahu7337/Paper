@@ -1083,10 +1083,10 @@ body.mode-focus #editor > *.active-line {
 .slash-menu {
   position: absolute;
   z-index: 75;
-  width: 195px;
+  width: 170px;
   background: #ffffff;
   border: 1px solid #f0f0f2;
-  border-radius: 10px;
+  border-radius: 9px;
   box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.08), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
   padding: 4px;
   display: none;
@@ -1114,8 +1114,8 @@ html.dark .slash-menu,
 .slash-menu-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 5px 8px;
+  justify-content: space-between;
+  padding: 6px 10px;
   border-radius: 6px;
   cursor: pointer;
   user-select: none;
@@ -1132,59 +1132,6 @@ html.dark .slash-menu-item.selected,
 [data-theme="dark"] .slash-menu-item:hover,
 [data-theme="dark"] .slash-menu-item.selected {
   background: rgba(255, 255, 255, 0.09);
-}
-
-.slash-item-icon {
-  width: 18px;
-  height: 18px;
-  color: #52525b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-html.dark .slash-item-icon,
-[data-theme="dark"] .slash-item-icon {
-  color: #a1a1aa;
-}
-
-.slash-icon-symbol {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 600;
-  color: #71717a;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  letter-spacing: -0.02em;
-  min-width: 18px;
-}
-
-html.dark .slash-icon-symbol,
-[data-theme="dark"] .slash-icon-symbol {
-  color: #a1a1aa;
-}
-
-.slash-icon-text {
-  font-family: var(--font-sans);
-  font-size: 13.5px;
-  font-weight: 600;
-  color: #71717a;
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-
-html.dark .slash-icon-text,
-[data-theme="dark"] .slash-icon-text {
-  color: #a1a1aa;
-}
-
-.slash-icon-text .slash-sub {
-  font-size: 9px;
-  bottom: -0.2em;
-  font-weight: 600;
 }
 
 .slash-item-name {
