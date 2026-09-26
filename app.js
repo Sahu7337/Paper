@@ -846,7 +846,7 @@
     const appRect = el.app.getBoundingClientRect();
 
     el.slashMenu.style.top = `${rect.bottom - appRect.top + 6}px`;
-    el.slashMenu.style.left = `${Math.max(16, Math.min(window.innerWidth - 205, rect.left - appRect.left))}px`;
+    el.slashMenu.style.left = `${Math.max(16, Math.min(window.innerWidth - 220, rect.left - appRect.left))}px`;
     el.slashMenu.classList.add('visible');
     state.slashMenuOpen = true;
     slashSelectedIndex = 0;
