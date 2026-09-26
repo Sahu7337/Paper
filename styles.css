@@ -140,14 +140,7 @@ body {
   transition: opacity var(--transition-normal);
 }
 
-/* UI Disappears smoothly when typing */
-body.typing-active .top-bar,
-body.typing-active .bottom-bar {
-  opacity: 0 !important;
-  pointer-events: none !important;
-  transition: opacity 0.4s ease;
-}
-
+/* Floating Toolbar Disappears smoothly when typing */
 body.typing-active .floating-toolbar {
   opacity: 0 !important;
   pointer-events: none !important;
@@ -225,7 +218,7 @@ html.dark .icon-btn.active,
   border-radius: var(--radius-md);
   border: 1px solid transparent;
   background: transparent;
-  color: var(--text-primary);
+  color: var(--text-secondary);
   cursor: pointer;
   letter-spacing: -0.01em;
   user-select: none;
@@ -246,7 +239,7 @@ html.dark .icon-btn.active,
 
 html.dark .nav-text-btn,
 [data-theme="dark"] .nav-text-btn {
-  color: var(--text-primary);
+  color: var(--text-secondary);
 }
 
 html.dark .nav-text-btn:hover,
@@ -301,36 +294,36 @@ html.dark .more-menu-dropdown,
   padding: 7px 12px;
   font-size: 14px;
   font-weight: 450;
-  color: #000000 !important;
+  color: #3f3f46;
   border-radius: 6px;
   cursor: pointer;
   user-select: none;
-  transition: background var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast);
 }
 
 .menu-item span {
-  color: #000000 !important;
+  color: #3f3f46;
 }
 
 .menu-item:hover,
 .menu-item.active {
   background: #f4f4f5;
-  color: #000000 !important;
+  color: #18181b;
 }
 
 .menu-item:hover span,
 .menu-item.active span {
-  color: #000000 !important;
+  color: #18181b;
 }
 
 html.dark .menu-item,
 [data-theme="dark"] .menu-item {
-  color: #f9fafb !important;
+  color: #d4d4d8;
 }
 
 html.dark .menu-item span,
 [data-theme="dark"] .menu-item span {
-  color: #f9fafb !important;
+  color: #d4d4d8;
 }
 
 html.dark .menu-item:hover,
@@ -338,14 +331,14 @@ html.dark .menu-item.active,
 [data-theme="dark"] .menu-item:hover,
 [data-theme="dark"] .menu-item.active {
   background: rgba(255, 255, 255, 0.08);
-  color: #ffffff !important;
+  color: #ffffff;
 }
 
 html.dark .menu-item:hover span,
 html.dark .menu-item.active span,
 [data-theme="dark"] .menu-item:hover span,
 [data-theme="dark"] .menu-item.active span {
-  color: #ffffff !important;
+  color: #ffffff;
 }
 
 .menu-shortcut,
@@ -1090,12 +1083,12 @@ body.mode-focus #editor > *.active-line {
 .slash-menu {
   position: absolute;
   z-index: 75;
-  width: 250px;
+  width: 195px;
   background: #ffffff;
   border: 1px solid #f0f0f2;
-  border-radius: 14px;
-  box-shadow: 0 14px 34px -4px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
-  padding: 6px;
+  border-radius: 10px;
+  box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.08), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+  padding: 4px;
   display: none;
   flex-direction: column;
   gap: 1px;
@@ -1105,7 +1098,7 @@ html.dark .slash-menu,
 [data-theme="dark"] .slash-menu {
   background: #202023;
   border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .slash-menu.visible {
@@ -1121,9 +1114,9 @@ html.dark .slash-menu,
 .slash-menu-item {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 8px 12px;
-  border-radius: 9px;
+  gap: 10px;
+  padding: 5px 8px;
+  border-radius: 6px;
   cursor: pointer;
   user-select: none;
   transition: background var(--transition-fast);
@@ -1142,8 +1135,8 @@ html.dark .slash-menu-item.selected,
 }
 
 .slash-item-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   color: #52525b;
   display: flex;
   align-items: center;
@@ -1156,9 +1149,27 @@ html.dark .slash-item-icon,
   color: #a1a1aa;
 }
 
+.slash-icon-symbol {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: #71717a;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: -0.02em;
+  min-width: 18px;
+}
+
+html.dark .slash-icon-symbol,
+[data-theme="dark"] .slash-icon-symbol {
+  color: #a1a1aa;
+}
+
 .slash-icon-text {
   font-family: var(--font-sans);
-  font-size: 14.5px;
+  font-size: 13.5px;
   font-weight: 600;
   color: #71717a;
   line-height: 1;
@@ -1171,14 +1182,14 @@ html.dark .slash-icon-text,
 }
 
 .slash-icon-text .slash-sub {
-  font-size: 10px;
+  font-size: 9px;
   bottom: -0.2em;
   font-weight: 600;
 }
 
 .slash-item-name {
   font-family: var(--font-ui);
-  font-size: 14.5px;
+  font-size: 13px;
   font-weight: 450;
   color: #18181b;
   letter-spacing: -0.01em;
@@ -1192,7 +1203,7 @@ html.dark .slash-item-name,
 .slash-item-shortcut {
   margin-left: auto;
   font-family: var(--font-ui);
-  font-size: 12.5px;
+  font-size: 11px;
   font-weight: 400;
   color: #9ca3af;
   letter-spacing: 0;
@@ -1206,7 +1217,7 @@ html.dark .slash-item-shortcut,
 .slash-divider {
   height: 1px;
   background: #f0f0f2;
-  margin: 4px 6px;
+  margin: 3px 4px;
 }
 
 html.dark .slash-divider,
