@@ -132,6 +132,7 @@
     btnShortcuts: document.getElementById('btn-shortcuts'),
     floatingToolbar: document.getElementById('floating-toolbar'),
     slashMenu: document.getElementById('slash-menu'),
+    slashImageInput: document.getElementById('slash-image-input'),
     metricsPill: document.getElementById('metrics-pill'),
     metricsText: document.getElementById('metrics-text'),
     goalRingFill: document.getElementById('goal-ring-fill'),
@@ -835,8 +836,8 @@
     const rect = range.getBoundingClientRect();
     const appRect = el.app.getBoundingClientRect();
 
-    el.slashMenu.style.top = `${rect.bottom - appRect.top + 8}px`;
-    el.slashMenu.style.left = `${Math.max(20, Math.min(window.innerWidth - 260, rect.left - appRect.left))}px`;
+    el.slashMenu.style.top = `${rect.bottom - appRect.top + 6}px`;
+    el.slashMenu.style.left = `${Math.max(16, Math.min(window.innerWidth - 270, rect.left - appRect.left))}px`;
     el.slashMenu.classList.add('visible');
     state.slashMenuOpen = true;
     slashSelectedIndex = 0;
@@ -856,27 +857,6 @@
     });
   }
 
-  function insertChecklistItem() {
-    const ul = document.createElement('ul');
-    ul.className = 'checklist';
-    const li = document.createElement('li');
-    li.className = 'task-item';
-    li.innerHTML = '<input type="checkbox"> <span>To-do item</span>';
-    ul.appendChild(li);
-
-    const sel = window.getSelection();
-    if (sel.rangeCount) {
-      const range = sel.getRangeAt(0);
-      range.insertNode(ul);
-      // Place cursor inside the span
-      const span = li.querySelector('span');
-      const r = document.createRange();
-      r.selectNodeContents(span);
-      sel.removeAllRanges();
-      sel.addRange(r);
-    }
-  }
-
   function executeSlashAction(action) {
     hideSlashMenu();
     const sel = window.getSelection();
@@ -886,20 +866,48 @@
       document.execCommand('delete', false, null);
     }
 
-    if (action === 'h1') document.execCommand('formatBlock', false, 'h1');
-    else if (action === 'h2') document.execCommand('formatBlock', false, 'h2');
-    else if (action === 'h3') document.execCommand('formatBlock', false, 'h3');
-    else if (action === 'bullet') document.execCommand('insertUnorderedList', false, null);
-    else if (action === 'number') document.execCommand('insertOrderedList', false, null);
-    else if (action === 'checklist') insertChecklistItem();
-    else if (action === 'quote') document.execCommand('formatBlock', false, 'blockquote');
-    else if (action === 'code') {
-      const pre = document.createElement('pre');
-      pre.innerHTML = '<code>// Write code here...</code>';
-      const r = sel.getRangeAt(0);
-      r.insertNode(pre);
-    } else if (action === 'hr') {
-      document.execCommand('insertHorizontalRule', false, null);
+    if (action === 'dictate') {
+      if (state.dictationActive) {
+        stopDictation(true);
+      } else {
+        startDictation();
+      }
+      return;
+    } else if (action === 'h1') {
+      document.execCommand('formatBlock', false, 'h1');
+    } else if (action === 'h2') {
+      document.execCommand('formatBlock', false, 'h2');
+    } else if (action === 'h3') {
+      document.execCommand('formatBlock', false, 'h3');
+    } else if (action === 'bullet') {
+      document.execCommand('insertUnorderedList', false, null);
+    } else if (action === 'number') {
+      document.execCommand('insertOrderedList', false, null);
+    } else if (action === 'quote') {
+      document.execCommand('formatBlock', false, 'blockquote');
+    } else if (action === 'link') {
+      const url = prompt('Enter link URL (e.g. https://example.com):', 'https://');
+      if (url && url !== 'https://') {
+        const text = prompt('Enter link text:', url) || url;
+        document.execCommand('insertHTML', false, `<a href="${url}" target="_blank" rel="noopener">${text}</a> `);
+      }
+    } else if (action === 'image') {
+      if (el.slashImageInput) {
+        el.slashImageInput.value = '';
+        el.slashImageInput.onchange = () => {
+          const file = el.slashImageInput.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const imgHtml = `<p><img src="${e.target.result}" alt="${file.name}" style="max-width: 100%; border-radius: 8px; margin: 12px 0;" /></p><p><br></p>`;
+              document.execCommand('insertHTML', false, imgHtml);
+              triggerAutoSave();
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+        el.slashImageInput.click();
+      }
     }
 
     triggerAutoSave();
