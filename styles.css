@@ -1702,6 +1702,65 @@ input:checked + .slider:before {
 }
 
 /* --------------------------------------------------------------------------
+   Custom Tooltips (Overrides Browser Default)
+   -------------------------------------------------------------------------- */
+
+.app-tooltip {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+  background: #18181b;
+  color: #fafafa;
+  font-family: var(--font-ui);
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.2;
+  padding: 5px 9px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+  opacity: 0;
+  transform: scale(0.96);
+  transition: opacity 0.12s ease-out, transform 0.12s ease-out;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: -0.01em;
+  user-select: none;
+}
+
+.app-tooltip.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.app-tooltip kbd {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-ui);
+  font-size: 10.5px;
+  font-weight: 400;
+  background: rgba(255, 255, 255, 0.16);
+  color: #d4d4d8;
+  padding: 1px 4px;
+  border-radius: 4px;
+  line-height: 1.1;
+}
+
+html.dark .app-tooltip,
+[data-theme="dark"] .app-tooltip {
+  background: #27272a;
+  color: #f4f4f5;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+html.dark .app-tooltip kbd,
+[data-theme="dark"] .app-tooltip kbd {
+  background: rgba(255, 255, 255, 0.12);
+  color: #a1a1aa;
+}
+
+/* --------------------------------------------------------------------------
    Print Stylesheet (Export to PDF)
    -------------------------------------------------------------------------- */
 
@@ -1718,7 +1777,8 @@ input:checked + .slider:before {
   .slash-menu,
   .modal-backdrop,
   .dictation-bar-container,
-  .toast-container {
+  .toast-container,
+  .app-tooltip {
     display: none !important;
   }
   .workspace {
