@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Paper</title>
+  <meta name="description" content="A truly simple writing app in your browser. No setup, no clutter, just a focused space to write."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="Paper — A beautiful, simple writing app"/>
+  <meta property="og:url" content="https://blank.page"/>
+  <meta property="og:description" content="The simplest way to write your thoughts."/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+
+  <!-- Official Typography Preload & Stylesheet with Poppins -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&amp;family=Cousine:wght@400;700&amp;family=IBM+Plex+Sans:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;family=Lora:ital,wght@0,400;0,600;1,400;1,600&amp;display=swap"/>
+  <link id="gfonts" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&amp;family=Cousine:wght@400;700&amp;family=IBM+Plex+Sans:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;family=Lora:ital,wght@0,400;0,600;1,400;1,600&amp;display=swap" media="print"/>
+  <script>(function(){var l=document.getElementById('gfonts');if(!l)return;function on(){l.media='all';}if(l.sheet){on();}else{l.addEventListener('load',on);}})();</script>
+
+  <!-- Pre-paint script: instantly sets typeface, text scale, and dark theme without flash -->
+  <script>
+    const settings = JSON.parse(window.localStorage.getItem("settings") ?? window.localStorage.getItem("blankpage_settings") ?? "{}");
+    const theme = settings.theme || "system";
+
+    let resolvedTheme = theme;
+    if (theme === "system") {
+      resolvedTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+
+    if (resolvedTheme === "dark") {
+      document.documentElement.className += " dark disable-all-transitions";
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light");
+    }
+
+    const typefaceTypography = {
+      sans: { fontFamily: '"Poppins", system-ui, -apple-system, sans-serif', lineHeight: "1.65", letterSpacing: "0.005em", wordSpacing: "0", contentHalfWidth: "34ch" },
+      serif: { fontFamily: '"Lora", serif', lineHeight: "1.7", letterSpacing: "0", wordSpacing: "0", contentHalfWidth: "33ch" },
+      mono: { fontFamily: "Cousine, monospace", lineHeight: "1.8", letterSpacing: "0", wordSpacing: "0", contentHalfWidth: "35ch" }
+    };
+
+    const typeface = typefaceTypography[settings.typeface] ? settings.typeface : "sans";
+    const typo = typefaceTypography[typeface];
+    const textScale = typeof settings.textScale === "number" && settings.textScale >= 16.5 / 18 && settings.textScale <= 21 / 18 ? settings.textScale : 1;
+    const el = document.documentElement;
+    el.style.setProperty("--font-editor", typo.fontFamily);
+    el.style.setProperty("--content-half-width", typo.contentHalfWidth);
+    el.style.setProperty("--font-editor-lh", typo.lineHeight);
+    el.style.setProperty("--font-editor-ls", typo.letterSpacing);
+    el.style.setProperty("--font-editor-ws", typo.wordSpacing);
+    el.style.setProperty("--font-editor-scale", String(textScale));
+  </script>
+
+  <link id="page-favicon" rel="icon" href="favicon.svg" type="image/svg+xml"/>
+  <link rel="apple-touch-icon" href="favicon.svg"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+<div id="app">
+  <!-- Top Navigation Bar -->
+  <header class="top-bar">
+    <div class="top-bar-left"></div>
+
+    <div class="top-bar-right" style="position: relative;">
+      <button id="btn-share" class="nav-text-btn" title="Share document">Share</button>
+      <button id="btn-more-options" class="nav-text-btn" aria-label="More options" aria-expanded="false" title="More options">More...</button>
+
+      <!-- Dropdown Popover Menu -->
+      <div id="more-menu-dropdown" class="more-menu-dropdown">
+        <div class="menu-item" id="menu-new-doc">
+          <span>New document</span>
+          <span class="menu-shortcut">Ctrl+Alt+N</span>
+        </div>
+        <div class="menu-divider"></div>
+        <div class="menu-item" id="menu-fullscreen">
+          <span>Full screen</span>
+        </div>
+        <div class="menu-divider"></div>
+        <div class="menu-item" id="menu-markdown">
+          <span>Markdown mode</span>
+        </div>
+        <div class="menu-item" id="menu-theme">
+          <span id="menu-theme-text">Dark theme</span>
+        </div>
+        <div class="menu-item has-submenu" id="menu-typeface-toggle">
+          <span>Typeface</span>
+          <span id="menu-typeface-label" class="menu-badge">Mono</span>
+        </div>
+        <!-- Typeface Submenu -->
+        <div id="typeface-submenu" class="typeface-submenu">
+          <div class="submenu-item active" data-typeface="mono">
+            <span>Mono</span>
+            <svg class="check-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="submenu-item" data-typeface="sans">
+            <span>Sans</span>
+            <svg class="check-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="submenu-item" data-typeface="serif">
+            <span>Serif</span>
+            <svg class="check-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+        </div>
+        <div class="menu-divider"></div>
+        <div class="menu-item" id="menu-counter">
+          <span>Show counter</span>
+          <span class="menu-shortcut">Ctrl+Shift+Y</span>
+        </div>
+        <div class="menu-item" id="menu-formatting">
+          <span>Show formatting</span>
+        </div>
+        <div class="menu-item" id="menu-spellcheck">
+          <span>Show spellcheck</span>
+        </div>
+        <div class="menu-divider"></div>
+        <div class="menu-item" id="menu-shortcuts">
+          <span>Keyboard shortcuts</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main id="workspace" class="workspace">
+    <div class="editor-wrapper">
+      <h1 id="doc-title" class="doc-title" contenteditable="true" spellcheck="false" role="textbox" aria-label="Title" data-placeholder="Title..."></h1>
+      <div id="editor" contenteditable="true" spellcheck="false" role="textbox" aria-multiline="true"></div>
+      <textarea id="markdown-editor" spellcheck="false" placeholder="Start Writing..."></textarea>
+    </div>
+  </main>
+
+  <!-- Zen Exit Hint -->
+  <div class="zen-exit-hint">Press Esc or F11 to exit Zen mode</div>
+
+  <!-- Floating Selection Formatting Toolbar -->
+  <div id="floating-toolbar" class="floating-toolbar">
+    <div class="toolbar-group">
+      <button class="toolbar-btn" data-cmd="bold" title="Bold (Ctrl+B)">
+        <strong>B</strong>
+      </button>
+      <button class="toolbar-btn" data-cmd="italic" title="Italic (Ctrl+I)">
+        <em>I</em>
+      </button>
+      <button class="toolbar-btn" data-cmd="underline" title="Underline (Ctrl+U)">
+        <u>U</u>
+      </button>
+      <button class="toolbar-btn" data-cmd="strikeThrough" title="Strikethrough (Ctrl+Shift+X)">
+        <s>S</s>
+      </button>
+      <button class="toolbar-btn" data-cmd="code" title="Code (Ctrl+E)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <polyline points="16 18 22 12 16 6"/>
+          <polyline points="8 6 2 12 8 18"/>
+        </svg>
+      </button>
+      <button class="toolbar-btn" data-cmd="link" title="Insert Link (Ctrl+K)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <div class="toolbar-group">
+      <button class="toolbar-btn" data-cmd="h1" title="Heading 1 (#)">H1</button>
+      <button class="toolbar-btn" data-cmd="h2" title="Heading 2 (##)">H2</button>
+      <button class="toolbar-btn" data-cmd="h3" title="Heading 3 (###)">H3</button>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <div class="toolbar-group">
+      <button class="toolbar-btn" data-cmd="insertOrderedList" title="Numbered list (Ctrl+Shift+7)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <line x1="10" y1="6" x2="21" y2="6"/>
+          <line x1="10" y1="12" x2="21" y2="12"/>
+          <line x1="10" y1="18" x2="21" y2="18"/>
+          <path d="M4 6h1v4"/>
+          <path d="M4 10h2"/>
+          <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/>
+        </svg>
+      </button>
+      <button class="toolbar-btn" data-cmd="insertUnorderedList" title="Bulleted list (Ctrl+Shift+8)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <line x1="8" y1="6" x2="21" y2="6"/>
+          <line x1="8" y1="12" x2="21" y2="12"/>
+          <line x1="8" y1="18" x2="21" y2="18"/>
+          <line x1="3" y1="6" x2="3.01" y2="6"/>
+          <line x1="3" y1="12" x2="3.01" y2="12"/>
+          <line x1="3" y1="18" x2="3.01" y2="18"/>
+        </svg>
+      </button>
+      <button class="toolbar-btn" data-cmd="blockquote" title="Quote (Ctrl+Shift+9)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/>
+          <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <div class="toolbar-group">
+      <button class="toolbar-btn" id="btn-dictate-trigger" title="Dictate audio (Ctrl+D)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="23"/>
+          <line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Slash Command Menu -->
+  <div id="slash-menu" class="slash-menu">
+    <div class="slash-menu-header">Basic blocks</div>
+    <div class="slash-menu-item" data-action="h1">
+      <div class="slash-item-icon">H1</div>
+      <div class="slash-item-info">
+        <span class="slash-item-name">Heading 1</span>
+        <span class="slash-item-desc">Large section heading</span>
+      </div>
+    </div>
+    <div class="slash-menu-item" data-action="h2">
+      <div class="slash-item-icon">H2</div>
+      <div class="slash-item-info">
+        <span class="slash-item-name">Heading 2</span>
+        <span class="slash-item-desc">Medium section heading</span>
+      </div>
+    </div>
+    <div class="slash-menu-item" data-action="h3">
+      <div class="slash-item-icon">H3</div>
+      <div class="slash-item-info">
+        <span class="slash-item-name">Heading 3</span>
+        <span class="slash-item-desc">Small section heading</span>
+      </div>
+    </div>
+    <div class="slash-menu-item" data-action="bullet">
+      <div class="slash-item-icon">•</div>
+      <div class="slash-item-info">
+        <span class="slash-item-name">Bulleted list</span>
+        <span class="slash-item-desc">Create a simple bulleted list</span>
+      </div>
+    </div>
+    <div class="slash-menu-item" data-action="checklist">
+      <div class="slash-item-icon">☑</div>
+      <div class="slash-item-info">
+        <span class="slash-item-name">To-do list</span>
+        <span class="slash-item-desc">Track tasks with a checklist</span>
+      </div>
+    </div>
+    <div class="slash-menu-item" data-action="number">
+      <div class="slash-item-icon">1.</div>
+      <div class="slash-item-info">
+        <span class="slash-item-name">Numbered list</span>
+        <span class="slash-item-desc">Create a numbered list</span>
+      </div>
+    </div>
+    <div class="slash-menu-item" data-action="quote">
+      <div class="slash-item-icon">”</div>
+      <div class="slash-item-info">
+        <span class="slash-item-name">Quote</span>
+        <span class="slash-item-desc">Capture a memorable quote</span>
+      </div>
+    </div>
+    <div class="slash-menu-item" data-action="code">
+      <div class="slash-item-icon">&lt;&gt;</div>
+      <div class="slash-item-info">
+        <span class="slash-item-name">Code block</span>
+        <span class="slash-item-desc">Capture code snippet</span>
+      </div>
+    </div>
+    <div class="slash-menu-item" data-action="hr">
+      <div class="slash-item-icon">—</div>
+      <div class="slash-item-info">
+        <span class="slash-item-name">Divider</span>
+        <span class="slash-item-desc">Visual horizontal break</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dictation Floating Overlay Bar -->
+  <div id="dictation-bar" class="dictation-bar-container">
+    <span id="dictation-timer" class="dictation-timer">0:00</span>
+    <div class="waveform-canvas">
+      <div class="waveform-bar"></div>
+      <div class="waveform-bar"></div>
+      <div class="waveform-bar"></div>
+      <div class="waveform-bar"></div>
+      <div class="waveform-bar"></div>
+      <div class="waveform-bar"></div>
+      <div class="waveform-bar"></div>
+      <div class="waveform-bar"></div>
+      <div class="waveform-bar"></div>
+      <div class="waveform-bar"></div>
+    </div>
+    <button id="dictation-cancel-btn" class="dictation-btn" title="Cancel dictation (Esc)">Undo</button>
+    <button id="dictation-done-btn" class="dictation-btn primary">Done</button>
+  </div>
+
+  <!-- Bottom Metric / Status Bar -->
+  <footer class="bottom-bar">
+    <div id="metrics-pill" class="metrics-pill" title="Click to change stats or set goal">
+      <svg class="goal-progress-ring" viewBox="0 0 36 36">
+        <circle class="goal-ring-bg" cx="18" cy="18" r="15"/>
+        <circle id="goal-ring-fill" class="goal-ring-fill" cx="18" cy="18" r="15" stroke-dasharray="94.2" stroke-dashoffset="94.2"/>
+      </svg>
+      <span id="metrics-text">0 words</span>
+    </div>
+  </footer>
+</div>
+
+<!-- ========================================================================
+     MODALS
+     ======================================================================== -->
+
+<!-- Settings Modal -->
+<div id="settings-modal" class="modal-backdrop">
+  <div class="modal-window">
+    <div class="modal-header">
+      <span class="modal-title">Editor Settings</span>
+      <button class="modal-close-btn" data-close-modal="settings-modal">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <!-- Typeface -->
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">Typeface</span>
+          <span class="setting-desc">Font family for the writing canvas</span>
+        </div>
+        <div class="pill-picker" id="typeface-picker">
+          <button class="pill-option active" data-val="mono">Mono</button>
+          <button class="pill-option" data-val="sans">Sans</button>
+          <button class="pill-option" data-val="serif">Serif</button>
+        </div>
+      </div>
+
+      <!-- Text Scale -->
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">Text Size</span>
+          <span class="setting-desc">Canvas scale size</span>
+        </div>
+        <div class="pill-picker" id="text-scale-picker">
+          <button class="pill-option" data-val="0.91">Small</button>
+          <button class="pill-option active" data-val="1">Normal</button>
+          <button class="pill-option" data-val="1.08">Medium</button>
+          <button class="pill-option" data-val="1.16">Large</button>
+        </div>
+      </div>
+
+      <!-- Theme Mode -->
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">Theme</span>
+          <span class="setting-desc">Minimalist light, dark or system</span>
+        </div>
+        <div class="pill-picker" id="theme-picker">
+          <button class="pill-option active" data-val="system">System</button>
+          <button class="pill-option" data-val="light">Light</button>
+          <button class="pill-option" data-val="dark">Dark</button>
+        </div>
+      </div>
+
+      <!-- Focus Mode -->
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">Focus Mode</span>
+          <span class="setting-desc">Dim inactive paragraphs while typing</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="setting-focus-mode">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <!-- Typewriter Mode -->
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">Typewriter Mode</span>
+          <span class="setting-desc">Keep active cursor line vertically centered</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="setting-typewriter-mode">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <!-- Mechanical Sound Effects -->
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">Key Sounds</span>
+          <span class="setting-desc">Subtle typewriter audio feedback</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="setting-sound-mode">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <!-- Spellcheck -->
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">Spellcheck</span>
+          <span class="setting-desc">Browser spellcheck highlighting</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="setting-spellcheck">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <!-- Word Goal -->
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">Word Target Goal</span>
+          <span class="setting-desc">Track progress toward daily goal</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <input type="number" id="setting-word-goal" min="0" step="50" placeholder="e.g. 500" style="width: 80px; padding: 4px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); font-size: 13px;">
+          <span style="font-size: 12px; color: var(--text-muted);">words</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Export Modal -->
+<div id="export-modal" class="modal-backdrop">
+  <div class="modal-window">
+    <div class="modal-header">
+      <span class="modal-title">Export Document</span>
+      <button class="modal-close-btn" data-close-modal="export-modal">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="export-options-grid">
+        <div class="export-card" id="export-markdown">
+          <span class="export-card-title">Markdown (.md)</span>
+          <span class="export-card-desc">Standard plain-text markdown</span>
+        </div>
+        <div class="export-card" id="export-txt">
+          <span class="export-card-title">Plain Text (.txt)</span>
+          <span class="export-card-desc">Clean unformatted text</span>
+        </div>
+        <div class="export-card" id="export-pdf">
+          <span class="export-card-title">PDF Document</span>
+          <span class="export-card-desc">Print-optimized clean page</span>
+        </div>
+        <div class="export-card" id="export-html">
+          <span class="export-card-title">HTML Webpage</span>
+          <span class="export-card-desc">Stand-alone formatted HTML</span>
+        </div>
+      </div>
+      <div style="border-top: 1px solid var(--border-color); padding-top: 14px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 12px; color: var(--text-secondary);">Quick copy:</span>
+        <button id="btn-quick-copy" class="pill-option active" style="padding: 6px 14px;">Copy to clipboard</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Shortcuts Modal -->
+<div id="shortcuts-modal" class="modal-backdrop">
+  <div class="modal-window">
+    <div class="modal-header">
+      <span class="modal-title">Keyboard Shortcuts</span>
+      <button class="modal-close-btn" data-close-modal="shortcuts-modal">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="shortcuts-grid">
+        <div class="shortcut-row">
+          <span>Bold</span>
+          <div class="shortcut-keys"><span class="kbd">Ctrl</span><span class="kbd">B</span></div>
+        </div>
+        <div class="shortcut-row">
+          <span>Italic</span>
+          <div class="shortcut-keys"><span class="kbd">Ctrl</span><span class="kbd">I</span></div>
+        </div>
+        <div class="shortcut-row">
+          <span>Underline</span>
+          <div class="shortcut-keys"><span class="kbd">Ctrl</span><span class="kbd">U</span></div>
+        </div>
+        <div class="shortcut-row">
+          <span>Strikethrough</span>
+          <div class="shortcut-keys"><span class="kbd">Ctrl</span><span class="kbd">Shift</span><span class="kbd">X</span></div>
+        </div>
+        <div class="shortcut-row">
+          <span>Inline Code</span>
+          <div class="shortcut-keys"><span class="kbd">Ctrl</span><span class="kbd">E</span></div>
+        </div>
+        <div class="shortcut-row">
+          <span>Insert Link</span>
+          <div class="shortcut-keys"><span class="kbd">Ctrl</span><span class="kbd">K</span></div>
+        </div>
+        <div class="shortcut-row">
+          <span>Slash Command Menu</span>
+          <div class="shortcut-keys"><span class="kbd">/</span></div>
+        </div>
+        <div class="shortcut-row">
+          <span>New Document</span>
+          <div class="shortcut-keys"><span class="kbd">Ctrl</span><span class="kbd">Alt</span><span class="kbd">N</span></div>
+        </div>
+        <div class="shortcut-row">
+          <span>Zen Mode</span>
+          <div class="shortcut-keys"><span class="kbd">F11</span> or <span class="kbd">Alt</span><span class="kbd">Z</span></div>
+        </div>
+        <div class="shortcut-row">
+          <span>Toggle Theme</span>
+          <div class="shortcut-keys"><span class="kbd">Alt</span><span class="kbd">T</span></div>
+        </div>
+        <div class="shortcut-row">
+          <span>Toggle Markdown Mode</span>
+          <div class="shortcut-keys"><span class="kbd">Ctrl</span><span class="kbd">Shift</span><span class="kbd">M</span></div>
+        </div>
+        <div class="shortcut-row">
+          <span>Settings</span>
+          <div class="shortcut-keys"><span class="kbd">Ctrl</span><span class="kbd">,</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
