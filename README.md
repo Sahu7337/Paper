@@ -18,8 +18,8 @@ The interface adheres to a text-first philosophy: icon-heavy toolbars have been 
 
 ### Distraction-Free Writing Canvas
 - Dedicated Document Title: A prominent title field (`Title...`) sits atop the writing space, followed by the canvas (`Start Writing...`).
-- Fluid Keyboard Navigation: Pressing Enter from the title moves your cursor directly into the body. Pressing Backspace or Up Arrow from the beginning of an empty editor gracefully returns focus to the title.
-- Auto-Disappearing UI: Navigation headers, metrics, and floating bars fade out smoothly as soon as a key is pressed. The entire screen becomes a blank sheet of paper. Moving your mouse or pausing instantly restores interface visibility.
+- Clean Minimal Interface: Navigation headers and metrics remain calm and uncluttered, with quiet grey controls and high-contrast tooltips.
+- Smart Auto-Capitalization: Automatically capitalizes sentence starts, words following terminal punctuation, standalone "I", and common contractions like "I'll", "I'm", and "I'd".
 - Zen Mode: Enter true full-screen isolation using `F11` or `Alt + Z`.
 
 ### Pure Typography
