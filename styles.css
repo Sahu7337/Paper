@@ -1072,90 +1072,104 @@ body.mode-focus #editor > *.active-line {
 }
 
 /* --------------------------------------------------------------------------
-   Slash Command Menu (/)
+   Slash Command Menu (/) - Matching Screenshot Design
    -------------------------------------------------------------------------- */
 
 .slash-menu {
   position: absolute;
-  z-index: 70;
-  width: 240px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-dropdown);
+  z-index: 75;
+  width: 250px;
+  background: #ffffff;
+  border: 1px solid #f0f0f2;
+  border-radius: 14px;
+  box-shadow: 0 14px 34px -4px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
   padding: 6px;
   display: none;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
+}
+
+html.dark .slash-menu,
+[data-theme="dark"] .slash-menu {
+  background: #202023;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .slash-menu.visible {
   display: flex;
-  animation: fadeInDown 0.15s ease;
+  animation: slashFadeIn 0.12s ease-out;
 }
 
-@keyframes fadeInDown {
+@keyframes slashFadeIn {
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-.slash-menu-header {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-  padding: 6px 8px 4px 8px;
 }
 
 .slash-menu-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 7px 8px;
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  color: #000000;
+  gap: 14px;
+  padding: 8px 12px;
+  border-radius: 9px;
   cursor: pointer;
+  user-select: none;
   transition: background var(--transition-fast);
 }
 
 .slash-menu-item:hover,
 .slash-menu-item.selected {
-  background: var(--bg-hover);
-  color: #000000;
+  background: #f4f4f5;
 }
 
-html.dark .slash-menu-item,
-[data-theme="dark"] .slash-menu-item {
-  color: #fafafa;
+html.dark .slash-menu-item:hover,
+html.dark .slash-menu-item.selected,
+[data-theme="dark"] .slash-menu-item:hover,
+[data-theme="dark"] .slash-menu-item.selected {
+  background: rgba(255, 255, 255, 0.09);
 }
 
 .slash-item-icon {
-  width: 16px;
-  height: 16px;
-  color: #000000;
+  width: 20px;
+  height: 20px;
+  color: #52525b;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
-  font-size: 12px;
+  flex-shrink: 0;
 }
 
 html.dark .slash-item-icon,
 [data-theme="dark"] .slash-item-icon {
-  color: #fafafa;
+  color: #a1a1aa;
 }
 
-.slash-item-info {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
+.slash-icon-text {
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #71717a;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+html.dark .slash-icon-text,
+[data-theme="dark"] .slash-icon-text {
+  color: #a1a1aa;
+}
+
+.slash-icon-text .slash-sub {
+  font-size: 10px;
+  bottom: -0.2em;
+  font-weight: 600;
 }
 
 .slash-item-name {
-  font-weight: 500;
-  color: #000000;
+  font-family: var(--font-ui);
+  font-size: 14.5px;
+  font-weight: 450;
+  color: #18181b;
+  letter-spacing: -0.01em;
 }
 
 html.dark .slash-item-name,
@@ -1163,9 +1177,29 @@ html.dark .slash-item-name,
   color: #fafafa;
 }
 
-.slash-item-desc {
-  font-size: 11px;
-  color: var(--text-muted);
+.slash-item-shortcut {
+  margin-left: auto;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 400;
+  color: #9ca3af;
+  letter-spacing: 0;
+}
+
+html.dark .slash-item-shortcut,
+[data-theme="dark"] .slash-item-shortcut {
+  color: #71717a;
+}
+
+.slash-divider {
+  height: 1px;
+  background: #f0f0f2;
+  margin: 4px 6px;
+}
+
+html.dark .slash-divider,
+[data-theme="dark"] .slash-divider {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* --------------------------------------------------------------------------
