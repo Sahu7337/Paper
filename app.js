@@ -456,14 +456,28 @@
   }
 
   // --- UI Activity on Typing ---
+  let typingFadeTimer = null;
   function handleTypingActivity() {
+    // Add typing-active class to smoothly fade out top bar, bottom bar, and toolbar
+    document.body.classList.add('typing-active');
     el.floatingToolbar.classList.remove('visible');
+
     // Immediately reflect lines on the favicon and update tab title
     updateFaviconAndTitle();
+
+    clearTimeout(typingFadeTimer);
+    // After 2.5s of typing pause, smoothly bring UI back
+    typingFadeTimer = setTimeout(() => {
+      document.body.classList.remove('typing-active');
+    }, 2500);
   }
 
   function handleMouseMove() {
-    // Keep UI responsive
+    // Mouse movement brings the UI back immediately
+    if (document.body.classList.contains('typing-active')) {
+      document.body.classList.remove('typing-active');
+    }
+    clearTimeout(typingFadeTimer);
   }
 
   // --- UI Rendering ---
