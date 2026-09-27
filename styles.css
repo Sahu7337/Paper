@@ -140,10 +140,14 @@ body {
   transition: opacity var(--transition-normal);
 }
 
-/* Floating Toolbar Disappears smoothly when typing */
-body.typing-active .floating-toolbar {
+/* UI Disappears smoothly when typing */
+body.typing-active .top-bar,
+body.typing-active .bottom-bar,
+body.typing-active .floating-toolbar,
+body.typing-active .app-tooltip {
   opacity: 0 !important;
   pointer-events: none !important;
+  transition: opacity 0.35s ease;
 }
 
 .top-bar:hover,
