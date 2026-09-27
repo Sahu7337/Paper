@@ -9,7 +9,7 @@
   // --- Typography configurations ---
   const TYPEFACES = {
     mono: {
-      fontFamily: '"Cousine", monospace',
+      fontFamily: '"Courier Prime", monospace',
       lineHeight: '1.8',
       letterSpacing: '0',
       wordSpacing: '0',
@@ -40,8 +40,7 @@
   <li class="task-item"><input type="checkbox" checked> <span>UI automatically fades away as soon as you start typing</span></li>
   <li class="task-item"><input type="checkbox" checked> <span>Live markdown shortcuts (# heading, - list, [ ] to-do, > quote)</span></li>
   <li class="task-item"><input type="checkbox"> <span>Toggle raw Markdown Mode with <code>Ctrl+Shift+M</code> or the top-bar icon</span></li>
-  <li class="task-item"><input type="checkbox"> <span>Select any text to reveal the floating formatting toolbar</span></li>
-  <li class="task-item"><input type="checkbox"> <span>Switch typefaces (Mono, Sans, Serif) in Settings (<code>Ctrl+,</code>)</span></li>
+  <li class="task-item"><input type="checkbox"> <span>Switch typefaces (Mono, Sans, Serif) from the top-right menu</span></li>
 </ul>
 <p>Delete this text anytime and start writing your thoughts.</p>`;
 
@@ -52,17 +51,13 @@
     isMarkdownMode: false,
     settings: {
       theme: 'system',
-      typeface: 'sans',
+      typeface: 'mono',
       textScale: 1,
       focusMode: false,
       typewriterMode: false,
       soundMode: false,
-      spellcheck: false,
-      counterVisible: true,
-      formattingToolbarVisible: true,
-      wordGoal: 0
+      spellcheck: false
     },
-    metricsMode: 0, // 0: words, 1: chars, 2: reading time, 3: goal
     isZenMode: false,
     isSidebarOpen: false,
     slashMenuOpen: false,
@@ -103,7 +98,6 @@
   // --- Elements Cache ---
   const el = {
     app: document.getElementById('app'),
-    docTitle: document.getElementById('doc-title'),
     editor: document.getElementById('editor'),
     markdownEditor: document.getElementById('markdown-editor'),
     workspace: document.getElementById('workspace'),
@@ -114,10 +108,8 @@
     searchPages: document.getElementById('search-pages'),
     pagesList: document.getElementById('pages-list'),
     pagesCount: document.getElementById('pages-count'),
-    btnShare: document.getElementById('btn-share'),
     btnMoreOptions: document.getElementById('btn-more-options'),
     moreMenuDropdown: document.getElementById('more-menu-dropdown'),
-    menuNewDoc: document.getElementById('menu-new-doc'),
     menuFullscreen: document.getElementById('menu-fullscreen'),
     menuMarkdown: document.getElementById('menu-markdown'),
     menuTheme: document.getElementById('menu-theme'),
@@ -125,38 +117,19 @@
     menuTypefaceToggle: document.getElementById('menu-typeface-toggle'),
     menuTypefaceLabel: document.getElementById('menu-typeface-label'),
     typefaceSubmenu: document.getElementById('typeface-submenu'),
-    menuCounter: document.getElementById('menu-counter'),
-    menuFormatting: document.getElementById('menu-formatting'),
-    menuSpellcheck: document.getElementById('menu-spellcheck'),
-    menuShortcuts: document.getElementById('menu-shortcuts'),
     btnExportAll: document.getElementById('btn-export-all'),
     btnShortcuts: document.getElementById('btn-shortcuts'),
-    floatingToolbar: document.getElementById('floating-toolbar'),
     slashMenu: document.getElementById('slash-menu'),
     slashImageInput: document.getElementById('slash-image-input'),
-    metricsPill: document.getElementById('metrics-pill'),
-    metricsText: document.getElementById('metrics-text'),
-    goalRingFill: document.getElementById('goal-ring-fill'),
     dictationBar: document.getElementById('dictation-bar'),
     dictationTimer: document.getElementById('dictation-timer'),
     dictationCancelBtn: document.getElementById('dictation-cancel-btn'),
     dictationDoneBtn: document.getElementById('dictation-done-btn'),
-    btnDictateTrigger: document.getElementById('btn-dictate-trigger'),
     toastContainer: document.getElementById('toast-container'),
     appTooltip: document.getElementById('app-tooltip'),
     // Modals
-    settingsModal: document.getElementById('settings-modal'),
     exportModal: document.getElementById('export-modal'),
     shortcutsModal: document.getElementById('shortcuts-modal'),
-    // Setting Controls
-    typefacePicker: document.getElementById('typeface-picker'),
-    textScalePicker: document.getElementById('text-scale-picker'),
-    themePicker: document.getElementById('theme-picker'),
-    settingFocusMode: document.getElementById('setting-focus-mode'),
-    settingTypewriterMode: document.getElementById('setting-typewriter-mode'),
-    settingSoundMode: document.getElementById('setting-sound-mode'),
-    settingSpellcheck: document.getElementById('setting-spellcheck'),
-    settingWordGoal: document.getElementById('setting-word-goal'),
     // Export actions
     exportMarkdown: document.getElementById('export-markdown'),
     exportTxt: document.getElementById('export-txt'),
@@ -171,10 +144,9 @@
   const FAVICON_LINES = "data:image/svg+xml,%3csvg%20width='16'%20height='16'%20viewBox='0%200%2016%2016'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_178_488)'%3e%3cpath%20d='M4.50391%200.900391L12.5537%200.958008L12.751%200.969727C13.7276%201.07414%2014.515%201.88867%2014.5244%202.89648L14.6201%2012.0547C14.6256%2012.582%2014.4168%2013.0759%2014.042%2013.4414L14.043%2013.4424C13.6798%2013.7974%2013.1987%2013.9929%2012.6914%2013.998C12.6218%2014.2376%2012.4926%2014.4566%2012.3135%2014.6367C12.0251%2014.9267%2011.6376%2015.084%2011.2324%2015.084H11.2207L3.02637%2015.0254H3.02539C2.19993%2015.0189%201.50689%2014.3557%201.49805%2013.5195L1.40039%204.2041C1.3964%203.80142%201.55224%203.41827%201.83691%203.13281C2.03404%202.93517%202.27743%202.80079%202.54102%202.73438C2.56372%202.25029%202.76513%201.79842%203.11426%201.45703V1.45605C3.50319%201.07657%204.00506%200.923809%204.46973%200.900391L4.48633%200.899414L4.50391%200.900391ZM5.17285%2011.4004L12.0674%2011.4697L11.9844%203.49707L5.10645%203.42871L5.17285%2011.4004Z'%20fill='%231D1D1B'%20stroke='white'%20stroke-width='1.2'/%3e%3crect%20x='5'%20y='3.5'%20width='7'%20height='8'%20fill='white'/%3e%3cline%20x1='6.2'%20y1='5.4'%20x2='10.8'%20y2='5.4'%20stroke='%231D1D1B'%20stroke-width='0.8'%20stroke-linecap='round'/%3e%3cline%20x1='6.2'%20y1='7.4'%20x2='10.8'%20y2='7.4'%20stroke='%231D1D1B'%20stroke-width='0.8'%20stroke-linecap='round'/%3e%3cline%20x1='6.2'%20y1='9.4'%20x2='9.2'%20y2='9.4'%20stroke='%231D1D1B'%20stroke-width='0.8'%20stroke-linecap='round'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_178_488'%3e%3crect%20width='16'%20height='16'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
 
   function updateFaviconAndTitle() {
-    const titleText = (el.docTitle ? el.docTitle.innerText : '').replace(/\u200B/g, '').trim();
     const text = state.isMarkdownMode ? (el.markdownEditor ? el.markdownEditor.value : '') : (el.editor ? el.editor.innerText : '');
     const cleanText = (text || '').replace(/\u200B/g, '').trim();
-    const hasText = titleText.length > 0 || cleanText.length > 0;
+    const hasText = cleanText.length > 0;
 
     // Update Favicon: blank white sheet when empty, white sheet with lines when typing/has text
     const faviconEl = document.getElementById('page-favicon');
@@ -186,23 +158,11 @@
     }
 
     // Reflect on the browser tab's title bar: exactly what is on the page, not "— Paper"
-    if (titleText) {
-      document.title = titleText;
-    } else if (cleanText) {
+    if (cleanText) {
       const firstLine = cleanText.split('\n')[0].trim().substring(0, 48);
       document.title = firstLine || 'Paper';
     } else {
       document.title = 'Paper';
-    }
-  }
-
-  function updateTitlePlaceholder() {
-    if (!el.docTitle) return;
-    const text = (el.docTitle.innerText || '').replace(/\u200B/g, '').trim();
-    if (!text) {
-      el.docTitle.setAttribute('data-empty', 'true');
-    } else {
-      el.docTitle.removeAttribute('data-empty');
     }
   }
 
@@ -344,12 +304,7 @@
     renderDocContent();
     renderPagesList();
     closeSidebar();
-    if (el.docTitle) {
-      el.docTitle.focus();
-      setCursorToStart(el.docTitle);
-    } else {
-      focusCurrentEditor();
-    }
+    focusCurrentEditor();
     showToast('New document');
   }
 
@@ -460,7 +415,6 @@
   function handleTypingActivity() {
     // Add typing-active class to smoothly fade out top bar, bottom bar, and toolbar
     document.body.classList.add('typing-active');
-    el.floatingToolbar.classList.remove('visible');
 
     // Immediately reflect lines on the favicon and update tab title
     updateFaviconAndTitle();
@@ -484,10 +438,6 @@
   function renderDocContent() {
     const doc = getActiveDoc();
     if (!doc) return;
-    if (el.docTitle) {
-      el.docTitle.innerText = doc.title || '';
-      updateTitlePlaceholder();
-    }
     if (el.editor) {
       el.editor.innerHTML = doc.content || '';
       updateEditorPlaceholder();
@@ -569,13 +519,12 @@
     saveDebounceTimer = setTimeout(() => {
       const doc = getActiveDoc();
       if (doc) {
-        if (el.docTitle) {
-          doc.title = (el.docTitle.innerText || '').replace(/\u200B/g, '').trim();
-        }
         if (state.isMarkdownMode && el.markdownEditor) {
           doc.content = markdownToHtml(el.markdownEditor.value);
+          doc.title = extractTitle(el.markdownEditor.value, true);
         } else if (el.editor) {
           doc.content = el.editor.innerHTML;
+          doc.title = extractTitle(doc.content, false);
         }
         doc.updatedAt = Date.now();
         saveToStorage();
@@ -585,40 +534,8 @@
     }, 400);
   }
 
-  // --- Word, Character, and Goal Metrics ---
-  function updateMetrics() {
-    const titleText = (el.docTitle ? el.docTitle.innerText : '').trim();
-    const bodyText = state.isMarkdownMode ? (el.markdownEditor ? el.markdownEditor.value : '') : (el.editor ? (el.editor.innerText || '') : '');
-    const fullText = (titleText ? titleText + ' ' : '') + bodyText;
-    const words = fullText.trim() ? (fullText.trim().match(/\S+/g) || []).length : 0;
-    const chars = fullText.length;
-    const readTimeMinutes = Math.ceil(words / 200);
-
-    const goal = state.settings.wordGoal || 0;
-    if (goal > 0) {
-      const percentage = Math.min(100, Math.round((words / goal) * 100));
-      const circumference = 2 * Math.PI * 15; // 94.2
-      const offset = circumference - (percentage / 100) * circumference;
-      if (el.goalRingFill) el.goalRingFill.style.strokeDashoffset = offset;
-    } else {
-      if (el.goalRingFill) el.goalRingFill.style.strokeDashoffset = 94.2;
-    }
-
-    if (!el.metricsText) return;
-    if (state.metricsMode === 0) {
-      el.metricsText.textContent = `${words} ${words === 1 ? 'word' : 'words'}`;
-    } else if (state.metricsMode === 1) {
-      el.metricsText.textContent = `${chars} ${chars === 1 ? 'char' : 'chars'}`;
-    } else if (state.metricsMode === 2) {
-      el.metricsText.textContent = `${readTimeMinutes} min read`;
-    } else if (state.metricsMode === 3) {
-      if (goal > 0) {
-        el.metricsText.textContent = `${words} / ${goal} words`;
-      } else {
-        el.metricsText.textContent = `${words} words`;
-      }
-    }
-  }
+  // --- Metrics (Disabled / Word Counter Removed) ---
+  function updateMetrics() {}
 
   // --- Theme & Appearance Application ---
   function applyTheme(theme) {
@@ -638,7 +555,7 @@
 
   function applySettings() {
     const s = state.settings;
-    const typo = TYPEFACES[s.typeface] || TYPEFACES.sans;
+    const typo = TYPEFACES[s.typeface] || TYPEFACES.mono;
     const root = document.documentElement;
 
     root.style.setProperty('--font-editor', typo.fontFamily);
@@ -650,15 +567,7 @@
 
     applyTheme(s.theme);
 
-    if (s.focusMode) {
-      document.body.classList.add('mode-focus');
-    } else {
-      document.body.classList.remove('mode-focus');
-    }
-
-    // Counter & Toolbar visibility
-    document.body.classList.toggle('hide-counter', s.counterVisible === false);
-    document.body.classList.toggle('hide-formatting-toolbar', s.formattingToolbarVisible === false);
+    document.body.classList.remove('mode-focus');
 
     // Update menu labels & badges
     if (el.menuTypefaceLabel) {
@@ -671,52 +580,11 @@
       });
     }
 
-    if (el.menuCounter) {
-      const counterText = el.menuCounter.querySelector('span:first-child');
-      if (counterText) {
-        counterText.textContent = s.counterVisible === false ? 'Show counter' : 'Hide counter';
-      }
-    }
-
-    if (el.menuFormatting) {
-      const formattingText = el.menuFormatting.querySelector('span:first-child');
-      if (formattingText) {
-        formattingText.textContent = s.formattingToolbarVisible === false ? 'Show formatting' : 'Hide formatting';
-      }
-    }
-
-    if (el.menuSpellcheck) {
-      const spellcheckText = el.menuSpellcheck.querySelector('span:first-child');
-      if (spellcheckText) {
-        spellcheckText.textContent = s.spellcheck ? 'Hide spellcheck' : 'Show spellcheck';
-      }
-    }
-
     el.editor.spellcheck = s.spellcheck;
     el.markdownEditor.spellcheck = s.spellcheck;
 
-    // Sync modal controls UI
-    updatePillPickers();
-    if (el.settingFocusMode) el.settingFocusMode.checked = s.focusMode;
-    if (el.settingTypewriterMode) el.settingTypewriterMode.checked = s.typewriterMode;
-    if (el.settingSoundMode) el.settingSoundMode.checked = s.soundMode;
-    if (el.settingSpellcheck) el.settingSpellcheck.checked = s.spellcheck;
-    if (el.settingWordGoal) el.settingWordGoal.value = s.wordGoal || '';
-
     saveToStorage();
     updateMetrics();
-  }
-
-  function updatePillPickers() {
-    el.typefacePicker.querySelectorAll('.pill-option').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.val === state.settings.typeface);
-    });
-    el.textScalePicker.querySelectorAll('.pill-option').forEach(btn => {
-      btn.classList.toggle('active', parseFloat(btn.dataset.val) === parseFloat(state.settings.textScale));
-    });
-    el.themePicker.querySelectorAll('.pill-option').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.val === state.settings.theme);
-    });
   }
 
   // --- Sidebar Controls ---
@@ -801,56 +669,7 @@
     if (el.typefaceSubmenu) el.typefaceSubmenu.classList.remove('open');
   }
 
-  // --- Floating Selection Toolbar Positioning ---
-  function updateFloatingToolbar() {
-    if (state.isMarkdownMode) {
-      el.floatingToolbar.classList.remove('visible');
-      return;
-    }
-
-    const selection = window.getSelection();
-    if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
-      el.floatingToolbar.classList.remove('visible');
-      return;
-    }
-
-    const text = selection.toString().trim();
-    if (!text) {
-      el.floatingToolbar.classList.remove('visible');
-      return;
-    }
-
-    const range = selection.getRangeAt(0);
-    if (!el.editor.contains(range.commonAncestorContainer)) {
-      el.floatingToolbar.classList.remove('visible');
-      return;
-    }
-
-    const rect = range.getBoundingClientRect();
-    const appRect = el.app.getBoundingClientRect();
-
-    const top = rect.top - appRect.top;
-    const left = rect.left + rect.width / 2 - appRect.left;
-
-    el.floatingToolbar.style.top = `${Math.max(10, top)}px`;
-    el.floatingToolbar.style.left = `${Math.max(160, Math.min(window.innerWidth - 160, left))}px`;
-    el.floatingToolbar.classList.add('visible');
-
-    syncToolbarActiveStates();
-  }
-
-  function syncToolbarActiveStates() {
-    const boldBtn = el.floatingToolbar.querySelector('[data-cmd="bold"]');
-    const italicBtn = el.floatingToolbar.querySelector('[data-cmd="italic"]');
-    const underlineBtn = el.floatingToolbar.querySelector('[data-cmd="underline"]');
-    const strikeBtn = el.floatingToolbar.querySelector('[data-cmd="strikeThrough"]');
-
-    if (boldBtn) boldBtn.classList.toggle('active', document.queryCommandState('bold'));
-    if (italicBtn) italicBtn.classList.toggle('active', document.queryCommandState('italic'));
-    if (underlineBtn) underlineBtn.classList.toggle('active', document.queryCommandState('underline'));
-    if (strikeBtn) strikeBtn.classList.toggle('active', document.queryCommandState('strikeThrough'));
-  }
-
+  // --- Text Formatting (Keyboard Shortcuts & Slash Commands) ---
   function formatText(cmd, val = null) {
     if (cmd === 'h1' || cmd === 'h2' || cmd === 'h3') {
       const block = getCurrentBlockNode();
@@ -883,7 +702,6 @@
       document.execCommand(cmd, false, val);
     }
     triggerAutoSave();
-    updateFloatingToolbar();
   }
 
   // --- Slash Command Menu (/) ---
@@ -1277,25 +1095,8 @@
     }
   }
 
-  // --- Active Line Focus ---
-  function updateActiveLineFocus() {
-    if (!state.settings.focusMode) return;
-
-    const sel = window.getSelection();
-    if (!sel.rangeCount) return;
-
-    let node = sel.anchorNode;
-    if (!node) return;
-    while (node && node.parentElement !== el.editor) {
-      node = node.parentElement;
-    }
-
-    if (node && node.parentElement === el.editor) {
-      Array.from(el.editor.children).forEach(child => {
-        child.classList.toggle('active-line', child === node);
-      });
-    }
-  }
+  // --- Active Line Focus (Disabled) ---
+  function updateActiveLineFocus() {}
 
   // --- Speech Dictation Feature ---
   function startDictation() {
@@ -1373,36 +1174,27 @@
   // --- Export Actions ---
   function exportAsMarkdown() {
     const doc = getActiveDoc();
-    const title = (el.docTitle ? el.docTitle.innerText : (doc && doc.title ? doc.title : '')).trim();
+    const title = (doc && doc.title ? doc.title : extractTitle(doc ? doc.content : '', state.isMarkdownMode)).trim();
     const body = state.isMarkdownMode ? (el.markdownEditor ? el.markdownEditor.value : '') : htmlToMarkdown(doc ? doc.content : '');
-    let full = body;
-    if (title && !body.startsWith('# ' + title)) {
-      full = `# ${title}\n\n${body}`;
-    }
     const cleanFilename = (title || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'untitled';
-    downloadFile(`${cleanFilename}.md`, full, 'text/markdown');
+    downloadFile(`${cleanFilename}.md`, body, 'text/markdown');
     closeModal('export-modal');
     showToast('Downloaded Markdown (.md)');
   }
 
   function exportAsText() {
     const doc = getActiveDoc();
-    const title = (el.docTitle ? el.docTitle.innerText : (doc && doc.title ? doc.title : '')).trim();
+    const title = (doc && doc.title ? doc.title : extractTitle(doc ? doc.content : '', state.isMarkdownMode)).trim();
     const body = state.isMarkdownMode ? (el.markdownEditor ? el.markdownEditor.value : '') : (el.editor ? el.editor.innerText : '');
-    let full = body;
-    if (title) {
-      full = `${title}\n\n${body}`;
-    }
     const cleanFilename = (title || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'untitled';
-    downloadFile(`${cleanFilename}.txt`, full, 'text/plain');
+    downloadFile(`${cleanFilename}.txt`, body, 'text/plain');
     closeModal('export-modal');
     showToast('Downloaded Text (.txt)');
   }
 
   function exportAsHtml() {
     const doc = getActiveDoc();
-    const title = (el.docTitle ? el.docTitle.innerText : (doc && doc.title ? doc.title : '')).trim();
-    const titleHtml = title ? `<h1>${title}</h1>` : '';
+    const title = (doc && doc.title ? doc.title : extractTitle(doc ? doc.content : '', state.isMarkdownMode)).trim();
     const bodyHtml = doc ? doc.content : '';
     const html = `<!DOCTYPE html>
 <html>
@@ -1418,7 +1210,6 @@ code { font-family: monospace; background: #f4f4f5; padding: 0.1em 0.3em; }
 </style>
 </head>
 <body>
-${titleHtml}
 ${bodyHtml}
 </body>
 </html>`;
@@ -1434,9 +1225,7 @@ ${bodyHtml}
   }
 
   function copyAllToClipboard() {
-    const title = (el.docTitle ? el.docTitle.innerText : '').trim();
-    const body = state.isMarkdownMode ? (el.markdownEditor ? el.markdownEditor.value : '') : (el.editor ? el.editor.innerText : '');
-    const text = title ? `${title}\n\n${body}` : body;
+    const text = state.isMarkdownMode ? (el.markdownEditor ? el.markdownEditor.value : '') : (el.editor ? el.editor.innerText : '');
     navigator.clipboard.writeText(text).then(() => {
       closeModal('export-modal');
       showToast('Copied to clipboard');
@@ -1699,12 +1488,12 @@ ${bodyHtml}
 
     activeTooltipTarget = target;
 
-    // Parse shortcut format: e.g. "Bold (Ctrl+B)" -> "Bold" and "<kbd>Ctrl+B</kbd>"
+    // Parse shortcut format: e.g. "Bold (Ctrl+B)" -> "Bold" and "Ctrl+B"
     const match = text.match(/^(.*?)\s*\(([^)]+)\)$/);
     if (match) {
-      el.appTooltip.innerHTML = `<span>${match[1]}</span><kbd>${match[2]}</kbd>`;
+      el.appTooltip.innerHTML = `<span class="tooltip-label">${match[1]}</span><span class="tooltip-shortcut">${match[2]}</span>`;
     } else {
-      el.appTooltip.textContent = text;
+      el.appTooltip.innerHTML = `<span class="tooltip-label">${text}</span>`;
     }
 
     el.appTooltip.style.left = '-9999px';
@@ -1718,7 +1507,7 @@ ${bodyHtml}
     left = Math.max(8, Math.min(window.innerWidth - tooltipRect.width - 8, left));
 
     let top = targetRect.top - tooltipRect.height - 7;
-    if (top < 8) {
+    if (top < 7) {
       top = targetRect.bottom + 7;
     }
 
@@ -1783,64 +1572,7 @@ ${bodyHtml}
     // Mouse movement reveals UI
     document.addEventListener('mousemove', handleMouseMove);
 
-    // Title Input & Navigation
-    if (el.docTitle) {
-      el.docTitle.addEventListener('focus', () => {
-        if (!el.docTitle.innerText.trim()) {
-          setCursorToStart(el.docTitle);
-        }
-      });
 
-      el.docTitle.addEventListener('click', () => {
-        if (!el.docTitle.innerText.trim()) {
-          setCursorToStart(el.docTitle);
-        }
-      });
-
-      el.docTitle.addEventListener('input', () => {
-        playKeyClick();
-        handleTypingActivity();
-        updateTitlePlaceholder();
-        triggerAutoSave();
-        updateMetrics();
-      });
-
-      el.docTitle.addEventListener('beforeinput', (e) => {
-        applySmartCapitalization(el.docTitle, e);
-      });
-
-      el.docTitle.addEventListener('keydown', (e) => {
-        handleTypingActivity();
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          if (state.isMarkdownMode && el.markdownEditor) {
-            el.markdownEditor.focus();
-          } else if (el.editor) {
-            el.editor.focus();
-            setCursorToStart(el.editor);
-          }
-        } else if (e.key === 'ArrowDown') {
-          const sel = window.getSelection();
-          if (sel && sel.rangeCount > 0) {
-            const range = sel.getRangeAt(0);
-            const len = (el.docTitle.innerText || '').length;
-            if (range.endOffset >= len) {
-              e.preventDefault();
-              focusCurrentEditor();
-            }
-          }
-        }
-      });
-
-      el.docTitle.addEventListener('paste', (e) => {
-        e.preventDefault();
-        const text = (e.clipboardData || window.clipboardData).getData('text/plain');
-        const clean = text.replace(/[\r\n]+/g, ' ').trim();
-        document.execCommand('insertText', false, clean);
-        updateTitlePlaceholder();
-        triggerAutoSave();
-      });
-    }
 
     // Editor Input & Auto-Save
     if (el.editor) {
@@ -1942,22 +1674,7 @@ ${bodyHtml}
           state.lastMarkdownConversion = null;
         }
 
-        // ArrowUp when at top of editor jumps to Title
-        if (e.key === 'ArrowUp' && el.docTitle) {
-          const sel = window.getSelection();
-          if (sel && sel.rangeCount > 0) {
-            const range = sel.getRangeAt(0);
-            if (range.startOffset === 0 && (!range.startContainer.previousSibling || range.startContainer === el.editor)) {
-              const rect = range.getBoundingClientRect();
-              const editorRect = el.editor.getBoundingClientRect();
-              if (rect.top <= editorRect.top + 30 || !el.editor.innerText.trim()) {
-                e.preventDefault();
-                el.docTitle.focus();
-                return;
-              }
-            }
-          }
-        }
+
 
         // Backspace handling: Undo markdown conversions, demote headings/quotes/lists, or jump to title
         if (e.key === 'Backspace') {
@@ -2068,8 +1785,8 @@ ${bodyHtml}
               }
             }
 
-            // 3. Backspace in empty editor jumps back to Title ONLY if not stuck in a special block
-            if (!el.editor.innerText.trim() && el.docTitle) {
+            // 3. Reset special blocks on Backspace in empty editor
+            if (!el.editor.innerText.trim()) {
               if (topBlock && ['h1', 'h2', 'h3', 'h4', 'blockquote', 'pre', 'ul', 'ol'].includes(topBlock.tagName.toLowerCase())) {
                 e.preventDefault();
                 const p = document.createElement('p');
@@ -2078,14 +1795,6 @@ ${bodyHtml}
                 setCursorToStart(p);
                 return;
               }
-              e.preventDefault();
-              el.docTitle.focus();
-              const titleRange = document.createRange();
-              titleRange.selectNodeContents(el.docTitle);
-              titleRange.collapse(false);
-              sel.removeAllRanges();
-              sel.addRange(titleRange);
-              return;
             }
           }
         }
@@ -2112,16 +1821,7 @@ ${bodyHtml}
     if (el.markdownEditor) {
       el.markdownEditor.addEventListener('keydown', (e) => {
         handleTypingActivity();
-        if (e.key === 'ArrowUp' && el.markdownEditor.selectionStart === 0 && el.docTitle) {
-          e.preventDefault();
-          el.docTitle.focus();
-          return;
-        }
-        if (e.key === 'Backspace' && !el.markdownEditor.value && el.docTitle) {
-          e.preventDefault();
-          el.docTitle.focus();
-          return;
-        }
+
         if (e.key === 'Tab') {
           e.preventDefault();
           const start = el.markdownEditor.selectionStart;
@@ -2191,29 +1891,7 @@ ${bodyHtml}
 
     // Editor Selection Change
     document.addEventListener('selectionchange', () => {
-      updateFloatingToolbar();
       updateActiveLineFocus();
-    });
-
-    // Floating Toolbar Button Click Handlers
-    el.floatingToolbar.addEventListener('click', (e) => {
-      const btn = e.target.closest('.toolbar-btn');
-      if (!btn) return;
-      e.preventDefault();
-
-      if (btn.id === 'btn-dictate-trigger') {
-        if (state.dictationActive) {
-          stopDictation(true);
-        } else {
-          startDictation();
-        }
-        return;
-      }
-
-      const cmd = btn.dataset.cmd;
-      if (cmd) {
-        formatText(cmd);
-      }
     });
 
     // Slash Menu Click Handlers
@@ -2244,11 +1922,6 @@ ${bodyHtml}
     if (el.sidebarBackdrop) el.sidebarBackdrop.addEventListener('click', closeSidebar);
     if (el.btnNewPage) el.btnNewPage.addEventListener('click', createNewDoc);
 
-    // Share button
-    if (el.btnShare) {
-      el.btnShare.addEventListener('click', () => openModal('export-modal'));
-    }
-
     // More options button and dropdown menu
     if (el.btnMoreOptions) {
       el.btnMoreOptions.addEventListener('click', (e) => {
@@ -2265,6 +1938,19 @@ ${bodyHtml}
         }
       }
     });
+
+    // Keyboard activation for focused menu items
+    if (el.moreMenuDropdown) {
+      el.moreMenuDropdown.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          const item = e.target.closest('.menu-item, .submenu-item');
+          if (item) {
+            e.preventDefault();
+            item.click();
+          }
+        }
+      });
+    }
 
     // Dropdown Items
     if (el.menuNewDoc) {
@@ -2318,51 +2004,7 @@ ${bodyHtml}
       });
     }
 
-    if (el.menuCounter) {
-      el.menuCounter.addEventListener('click', () => {
-        state.settings.counterVisible = !(state.settings.counterVisible !== false);
-        applySettings();
-        saveToStorage();
-        closeMoreMenu();
-      });
-    }
 
-    if (el.menuFormatting) {
-      el.menuFormatting.addEventListener('click', () => {
-        state.settings.formattingToolbarVisible = !(state.settings.formattingToolbarVisible !== false);
-        applySettings();
-        saveToStorage();
-        closeMoreMenu();
-      });
-    }
-
-    if (el.menuSpellcheck) {
-      el.menuSpellcheck.addEventListener('click', () => {
-        state.settings.spellcheck = !state.settings.spellcheck;
-        applySettings();
-        saveToStorage();
-        closeMoreMenu();
-      });
-    }
-
-    if (el.menuShortcuts) {
-      el.menuShortcuts.addEventListener('click', () => {
-        closeMoreMenu();
-        openModal('shortcuts-modal');
-      });
-    }
-
-    if (el.btnShortcuts) el.btnShortcuts.addEventListener('click', () => openModal('shortcuts-modal'));
-    if (el.btnExportAll) el.btnExportAll.addEventListener('click', exportAllDocuments);
-
-    // Sidebar search filter
-    if (el.searchPages) el.searchPages.addEventListener('input', renderPagesList);
-
-    // Metrics Pill Click (cycles through stats)
-    el.metricsPill.addEventListener('click', () => {
-      state.metricsMode = (state.metricsMode + 1) % 4;
-      updateMetrics();
-    });
 
     // Dictation Bar Actions
     el.dictationCancelBtn.addEventListener('click', () => stopDictation(false));
@@ -2390,57 +2032,7 @@ ${bodyHtml}
     el.exportHtml.addEventListener('click', exportAsHtml);
     el.btnQuickCopy.addEventListener('click', copyAllToClipboard);
 
-    // Settings Controls
-    el.typefacePicker.addEventListener('click', (e) => {
-      const btn = e.target.closest('.pill-option');
-      if (btn) {
-        state.settings.typeface = btn.dataset.val;
-        applySettings();
-      }
-    });
 
-    el.textScalePicker.addEventListener('click', (e) => {
-      const btn = e.target.closest('.pill-option');
-      if (btn) {
-        state.settings.textScale = parseFloat(btn.dataset.val);
-        applySettings();
-      }
-    });
-
-    el.themePicker.addEventListener('click', (e) => {
-      const btn = e.target.closest('.pill-option');
-      if (btn) {
-        applyTheme(btn.dataset.val);
-        saveToStorage();
-        updatePillPickers();
-      }
-    });
-
-    el.settingFocusMode.addEventListener('change', (e) => {
-      state.settings.focusMode = e.target.checked;
-      applySettings();
-    });
-
-    el.settingTypewriterMode.addEventListener('change', (e) => {
-      state.settings.typewriterMode = e.target.checked;
-      applySettings();
-    });
-
-    el.settingSoundMode.addEventListener('change', (e) => {
-      state.settings.soundMode = e.target.checked;
-      applySettings();
-    });
-
-    el.settingSpellcheck.addEventListener('change', (e) => {
-      state.settings.spellcheck = e.target.checked;
-      applySettings();
-    });
-
-    el.settingWordGoal.addEventListener('input', (e) => {
-      state.settings.wordGoal = parseInt(e.target.value, 10) || 0;
-      saveToStorage();
-      updateMetrics();
-    });
 
     // Global Keyboard Shortcuts
     document.addEventListener('keydown', (e) => {
@@ -2472,14 +2064,7 @@ ${bodyHtml}
         }
       }
 
-      // Ctrl + Shift + Y : Toggle Counter
-      if (e.ctrlKey && e.shiftKey && (e.key === 'y' || e.key === 'Y')) {
-        e.preventDefault();
-        state.settings.counterVisible = !(state.settings.counterVisible !== false);
-        applySettings();
-        saveToStorage();
-        return;
-      }
+
 
       // Ctrl + Shift + M : Toggle Markdown Mode
       if (e.ctrlKey && e.shiftKey && (e.key === 'm' || e.key === 'M')) {
@@ -2510,11 +2095,7 @@ ${bodyHtml}
         saveToStorage();
       }
 
-      // Ctrl + , : Settings Modal
-      if (e.ctrlKey && e.key === ',') {
-        e.preventDefault();
-        openModal('settings-modal');
-      }
+
 
       // Ctrl + S : Export Modal
       if (e.ctrlKey && (e.key === 's' || e.key === 'S')) {
@@ -2555,15 +2136,10 @@ ${bodyHtml}
     renderDocContent();
     setupEventListeners();
 
-    // Auto-focus title or editor on open and enable transitions
+    // Auto-focus editor on open and enable transitions
     setTimeout(() => {
       document.documentElement.classList.remove('disable-all-transitions');
-      if (el.docTitle && !el.docTitle.innerText.trim()) {
-        el.docTitle.focus();
-        setCursorToStart(el.docTitle);
-      } else {
-        focusCurrentEditor();
-      }
+      focusCurrentEditor();
     }, 100);
   }
 

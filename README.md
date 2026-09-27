@@ -17,17 +17,17 @@ The interface adheres to a text-first philosophy: icon-heavy toolbars have been 
 ## Key Features
 
 ### Distraction-Free Writing Canvas
-- Dedicated Document Title: A prominent title field (`Title...`) sits atop the writing space, followed by the canvas (`Start Writing...`).
-- Clean Minimal Interface: Navigation headers and metrics remain calm and uncluttered, with quiet grey controls and high-contrast tooltips.
+- Immediate Canvas: The editor starts immediately with clean "Start writing..." text, eliminating clutter.
+- Clean Flat Interface: No shadows, no outlines, zero-distraction solid surfaces with crisp typography.
 - Auto-Hiding UI on Typing: Headers, footers, metrics, and floating bars fade out smoothly as soon as you type, and instantly reappear when pausing or moving the mouse.
 - Smart Auto-Capitalization: Automatically capitalizes sentence starts, words following terminal punctuation, standalone "I", and common contractions like "I'll", "I'm", and "I'd".
 - Zen Mode: Enter true full-screen isolation using `F11` or `Alt + Z`.
 
 ### Pure Typography
-- Curated Font Families: Switch seamlessly between Sans (`Poppins`), Mono (`Cousine`), and Serif (`Lora`) typography.
+- Curated Font Families: Defaults to classic typewriter monospace (`Courier Prime` 12pt), with options for Sans (`Poppins`) and Serif (`Lora`) typography.
 - Proportional Layout: Text columns are bounded to optimal line-lengths (66 to 70 characters) for natural readability and typing rhythm.
 - Scalable Canvas: Adjust font size across Small, Normal, Medium, and Large without breaking line height or rhythm.
-- Dynamic Tab Title and Favicon: Browser tab reflects your document title in real time, and the favicon dynamically switches between a blank sheet and lined paper based on content presence.
+- Dynamic Tab Title and Favicon: Browser tab reflects your document text in real time, and the favicon dynamically switches between a blank sheet and lined paper based on content presence.
 
 ### Writing Tools and Markdown
 - Dual Mode Editing: Toggle effortlessly between visual rich-text and raw Markdown mode (`Ctrl + Shift + M`).
@@ -38,13 +38,9 @@ The interface adheres to a text-first philosophy: icon-heavy toolbars have been 
   - Quotes: `> `
   - Code blocks: ```` ``` ````
   - Horizontal rules: `---` or `***`
-- Slash Command Menu: Press `/` at any time to open a quick-insert block menu.
-- Floating Formatting Toolbar: Highlights selections to allow rapid styling without keyboard gymnastics.
+- Slash Command Menu: Press `/` at any time to open a clean, flat quick-insert block menu.
 - Audio Feedback: Optional subtle typewriter mechanical key click sounds generated via Web Audio API.
 
-### Metrics and Goals
-- Live Metric Pill: Displays word count, character count, and estimated reading time.
-- Target Word Goal: Set a daily or per-document word target and track progress via an SVG ring progress indicator.
 
 ### Speech to Text
 - Built-in Voice Dictation: Dictate your thoughts hands-free (`Ctrl + D`) with real-time waveform visualization and elapsed timer.
@@ -77,7 +73,6 @@ The interface adheres to a text-first philosophy: icon-heavy toolbars have been 
 | Zen Mode | `Alt + Z` or `F11` |
 | Toggle Dark/Light Theme | `Alt + T` |
 | Toggle Markdown Mode | `Ctrl + Shift + M` |
-| Editor Settings | `Ctrl + ,` |
 | Export Document | `Ctrl + S` |
 | Voice Dictation | `Ctrl + D` |
 | Dismiss Modals / Close Menus | `Esc` |
