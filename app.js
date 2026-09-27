@@ -66,6 +66,7 @@
     isZenMode: false,
     isSidebarOpen: false,
     slashMenuOpen: false,
+    lastMarkdownConversion: null,
     dictationActive: false,
     dictationStartTime: null,
     dictationInterval: null,
@@ -234,6 +235,31 @@
     range.collapse(true);
     sel.removeAllRanges();
     sel.addRange(range);
+  }
+
+  function getCurrentBlockOrItem() {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return null;
+    let node = sel.anchorNode;
+    if (!node) return null;
+    if (node === el.editor) {
+      const first = el.editor.firstElementChild;
+      return { topBlock: first, li: null };
+    }
+    let li = null;
+    let topBlock = null;
+    let cur = (node.nodeType === Node.TEXT_NODE) ? node.parentElement : node;
+    while (cur && cur !== el.editor) {
+      if (cur.tagName === 'LI') li = cur;
+      if (cur.parentElement === el.editor) topBlock = cur;
+      cur = cur.parentElement;
+    }
+    return { topBlock, li };
+  }
+
+  function getCurrentBlockNode() {
+    const res = getCurrentBlockOrItem();
+    return res ? res.topBlock : null;
   }
 
   function enforceTabTitle() {
@@ -813,9 +839,19 @@
 
   function formatText(cmd, val = null) {
     if (cmd === 'h1' || cmd === 'h2' || cmd === 'h3') {
-      document.execCommand('formatBlock', false, cmd);
+      const block = getCurrentBlockNode();
+      if (block && block.tagName.toLowerCase() === cmd) {
+        document.execCommand('formatBlock', false, 'p');
+      } else {
+        document.execCommand('formatBlock', false, cmd);
+      }
     } else if (cmd === 'blockquote') {
-      document.execCommand('formatBlock', false, 'blockquote');
+      const block = getCurrentBlockNode();
+      if (block && block.tagName.toLowerCase() === 'blockquote') {
+        document.execCommand('formatBlock', false, 'p');
+      } else {
+        document.execCommand('formatBlock', false, 'blockquote');
+      }
     } else if (cmd === 'code') {
       const selection = window.getSelection();
       if (!selection.rangeCount) return;
@@ -939,18 +975,42 @@
     if (text.startsWith('# ') && parent.tagName !== 'H1') {
       node.textContent = text.slice(2);
       document.execCommand('formatBlock', false, 'h1');
+      const block = getCurrentBlockNode();
+      if (block && !block.innerHTML.trim()) {
+        block.innerHTML = '<br>';
+        setCursorToStart(block);
+      }
+      state.lastMarkdownConversion = { prefix: '#', block: block, time: Date.now() };
       return;
     } else if (text.startsWith('## ') && parent.tagName !== 'H2') {
       node.textContent = text.slice(3);
       document.execCommand('formatBlock', false, 'h2');
+      const block = getCurrentBlockNode();
+      if (block && !block.innerHTML.trim()) {
+        block.innerHTML = '<br>';
+        setCursorToStart(block);
+      }
+      state.lastMarkdownConversion = { prefix: '##', block: block, time: Date.now() };
       return;
     } else if (text.startsWith('### ') && parent.tagName !== 'H3') {
       node.textContent = text.slice(4);
       document.execCommand('formatBlock', false, 'h3');
+      const block = getCurrentBlockNode();
+      if (block && !block.innerHTML.trim()) {
+        block.innerHTML = '<br>';
+        setCursorToStart(block);
+      }
+      state.lastMarkdownConversion = { prefix: '###', block: block, time: Date.now() };
       return;
     } else if (text.startsWith('#### ') && parent.tagName !== 'H4') {
       node.textContent = text.slice(5);
       document.execCommand('formatBlock', false, 'h4');
+      const block = getCurrentBlockNode();
+      if (block && !block.innerHTML.trim()) {
+        block.innerHTML = '<br>';
+        setCursorToStart(block);
+      }
+      state.lastMarkdownConversion = { prefix: '####', block: block, time: Date.now() };
       return;
     }
 
@@ -974,13 +1034,16 @@
       newRange.collapse(false);
       selection.removeAllRanges();
       selection.addRange(newRange);
+      state.lastMarkdownConversion = { prefix: isChecked ? '[x]' : '[ ]', block: ul, time: Date.now() };
       return;
     }
 
     // Unordered lists
     if ((text.startsWith('- ') || text.startsWith('* ') || text.startsWith('+ ')) && parent.tagName !== 'LI') {
+      const pfx = text[0];
       node.textContent = text.slice(2);
       document.execCommand('insertUnorderedList', false, null);
+      state.lastMarkdownConversion = { prefix: pfx, block: getCurrentBlockNode(), time: Date.now() };
       return;
     }
 
@@ -989,6 +1052,7 @@
       const match = text.match(/^\d+\.\s/)[0];
       node.textContent = text.slice(match.length);
       document.execCommand('insertOrderedList', false, null);
+      state.lastMarkdownConversion = { prefix: match.trim(), block: getCurrentBlockNode(), time: Date.now() };
       return;
     }
 
@@ -996,6 +1060,12 @@
     if (text.startsWith('> ') && parent.tagName !== 'BLOCKQUOTE') {
       node.textContent = text.slice(2);
       document.execCommand('formatBlock', false, 'blockquote');
+      const block = getCurrentBlockNode();
+      if (block && !block.innerHTML.trim()) {
+        block.innerHTML = '<br>';
+        setCursorToStart(block);
+      }
+      state.lastMarkdownConversion = { prefix: '>', block: block, time: Date.now() };
       return;
     }
 
@@ -1853,6 +1923,11 @@ ${bodyHtml}
 
         handleTypingActivity();
 
+        // Clear markdown shortcut undo state if typing other characters
+        if (e.key !== 'Backspace' && e.key !== 'Shift' && e.key !== 'Control' && e.key !== 'Alt' && e.key !== 'Meta') {
+          state.lastMarkdownConversion = null;
+        }
+
         // ArrowUp when at top of editor jumps to Title
         if (e.key === 'ArrowUp' && el.docTitle) {
           const sel = window.getSelection();
@@ -1870,17 +1945,135 @@ ${bodyHtml}
           }
         }
 
-        // Backspace in empty editor jumps back to Title
-        if (e.key === 'Backspace' && !el.editor.innerText.trim() && el.docTitle) {
-          e.preventDefault();
-          el.docTitle.focus();
+        // Backspace handling: Undo markdown conversions, demote headings/quotes/lists, or jump to title
+        if (e.key === 'Backspace') {
           const sel = window.getSelection();
-          const range = document.createRange();
-          range.selectNodeContents(el.docTitle);
-          range.collapse(false);
-          sel.removeAllRanges();
-          sel.addRange(range);
-          return;
+          if (sel && sel.rangeCount > 0 && sel.isCollapsed) {
+            const range = sel.getRangeAt(0);
+            const blockInfo = getCurrentBlockOrItem();
+            const topBlock = blockInfo ? blockInfo.topBlock : null;
+            const li = blockInfo ? blockInfo.li : null;
+
+            // 1. Immediate undo of markdown shortcut prefix (e.g. typed '# ' -> hit Backspace -> restores '#')
+            if (state.lastMarkdownConversion && (Date.now() - state.lastMarkdownConversion.time < 12000)) {
+              const conv = state.lastMarkdownConversion;
+              state.lastMarkdownConversion = null;
+              const targetNode = topBlock || conv.block;
+              if (targetNode && el.editor.contains(targetNode)) {
+                e.preventDefault();
+                const p = document.createElement('p');
+                const rawText = (targetNode.textContent || '').replace(/\u200B/g, '').trim();
+                p.textContent = conv.prefix + (rawText ? ' ' + rawText : '');
+                if (targetNode.parentNode) {
+                  targetNode.parentNode.replaceChild(p, targetNode);
+                } else {
+                  el.editor.innerHTML = '';
+                  el.editor.appendChild(p);
+                }
+
+                const newRange = document.createRange();
+                const textNode = p.firstChild || p;
+                const offset = conv.prefix.length;
+                newRange.setStart(textNode, offset);
+                newRange.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(newRange);
+
+                updateEditorPlaceholder();
+                triggerAutoSave();
+                updateMetrics();
+                return;
+              }
+            }
+
+            // 2. Handle Backspace inside special blocks (headings, blockquotes, lists, pre)
+            if (li) {
+              const liText = (li.textContent || '').replace(/\u200B/g, '').trim();
+              if (!liText) {
+                e.preventDefault();
+                const list = li.parentElement;
+                if (list && list.children.length <= 1) {
+                  const p = document.createElement('p');
+                  p.innerHTML = '<br>';
+                  list.parentNode.replaceChild(p, list);
+                  setCursorToStart(p);
+                } else if (list) {
+                  li.remove();
+                  const p = document.createElement('p');
+                  p.innerHTML = '<br>';
+                  list.parentNode.insertBefore(p, list.nextSibling);
+                  setCursorToStart(p);
+                }
+                updateEditorPlaceholder();
+                triggerAutoSave();
+                updateMetrics();
+                return;
+              }
+            } else if (topBlock) {
+              const tag = topBlock.tagName.toLowerCase();
+              const isSpecial = ['h1', 'h2', 'h3', 'h4', 'blockquote', 'pre'].includes(tag);
+              if (isSpecial) {
+                const blockText = (topBlock.textContent || '').replace(/\u200B/g, '');
+                const isEmpty = !blockText.trim();
+
+                let isAtStart = false;
+                if (range.startOffset === 0) {
+                  const preRange = document.createRange();
+                  preRange.selectNodeContents(topBlock);
+                  preRange.setEnd(range.startContainer, range.startOffset);
+                  if (preRange.toString().length === 0) {
+                    isAtStart = true;
+                  }
+                }
+
+                if (isEmpty || isAtStart) {
+                  e.preventDefault();
+                  const p = document.createElement('p');
+                  if (!isEmpty) {
+                    p.innerHTML = topBlock.innerHTML;
+                  } else {
+                    p.innerHTML = '<br>';
+                  }
+                  topBlock.parentNode.replaceChild(p, topBlock);
+
+                  const newRange = document.createRange();
+                  if (p.firstChild && p.firstChild.nodeType === Node.TEXT_NODE) {
+                    newRange.setStart(p.firstChild, 0);
+                  } else {
+                    newRange.setStart(p, 0);
+                  }
+                  newRange.collapse(true);
+                  sel.removeAllRanges();
+                  sel.addRange(newRange);
+
+                  updateEditorPlaceholder();
+                  triggerAutoSave();
+                  updateMetrics();
+                  return;
+                }
+              }
+            }
+
+            // 3. Backspace in empty editor jumps back to Title ONLY if not stuck in a special block
+            if (!el.editor.innerText.trim() && el.docTitle) {
+              if (topBlock && ['h1', 'h2', 'h3', 'h4', 'blockquote', 'pre', 'ul', 'ol'].includes(topBlock.tagName.toLowerCase())) {
+                e.preventDefault();
+                const p = document.createElement('p');
+                p.innerHTML = '<br>';
+                topBlock.parentNode.replaceChild(p, topBlock);
+                setCursorToStart(p);
+                return;
+              }
+              e.preventDefault();
+              el.docTitle.focus();
+              const titleRange = document.createRange();
+              titleRange.selectNodeContents(el.docTitle);
+              titleRange.collapse(false);
+              sel.removeAllRanges();
+              sel.addRange(titleRange);
+              return;
+            }
+          }
         }
 
         // Slash menu trigger
