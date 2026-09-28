@@ -176,11 +176,12 @@ body.typing-active .app-tooltip {
   width: 32px;
   height: 32px;
   border-radius: var(--radius-md);
-  border: 1px solid transparent;
+  border: none;
+  outline: none;
   background: transparent;
   color: #000000;
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast);
 }
 
 .icon-btn:hover {
@@ -195,7 +196,12 @@ body.typing-active .app-tooltip {
 .icon-btn.active {
   background: var(--bg-active);
   color: #000000;
-  border-color: var(--border-strong);
+}
+
+.icon-btn:focus,
+.icon-btn:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 html.dark .icon-btn,
@@ -226,13 +232,14 @@ html.dark .icon-btn.active,
   font-size: 13.5px;
   font-weight: 500;
   border-radius: var(--radius-md);
-  border: 1px solid transparent;
+  border: none;
+  outline: none;
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
   letter-spacing: -0.01em;
   user-select: none;
-  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast);
 }
 
 .nav-text-btn:hover {
@@ -243,8 +250,13 @@ html.dark .icon-btn.active,
 .nav-text-btn:active,
 .nav-text-btn[aria-expanded="true"] {
   background: var(--bg-hover);
-  border-color: var(--border-color);
   color: var(--text-primary);
+}
+
+.nav-text-btn:focus,
+.nav-text-btn:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 html.dark .nav-text-btn,
@@ -258,16 +270,17 @@ html.dark .nav-text-btn[aria-expanded="true"],
 [data-theme="dark"] .nav-text-btn[aria-expanded="true"] {
   background: rgba(255, 255, 255, 0.1);
   color: #fafafa;
-  border-color: rgba(255, 255, 255, 0.1);
+  border: none;
+  outline: none;
 }
 
-/* More Options Popover Menu (Matching reference dark pill design) */
+/* More Options Popover Menu (Matching clean flat aesthetic) */
 .more-menu-dropdown {
   position: absolute;
   top: calc(100% + 4px);
   right: 0;
   width: 210px;
-  background: #202022;
+  background: #f4f4f5;
   border: none;
   outline: none;
   border-radius: 9px;
@@ -277,7 +290,7 @@ html.dark .nav-text-btn[aria-expanded="true"],
   flex-direction: column;
   gap: 1px;
   z-index: 90;
-  color: #fafafa;
+  color: #18181b;
 }
 
 html.dark .more-menu-dropdown,
@@ -306,7 +319,7 @@ html.dark .more-menu-dropdown,
   padding: 7px 10px;
   font-size: 13px;
   font-weight: 500;
-  color: #fafafa;
+  color: #18181b;
   border-radius: 6px;
   border: none;
   outline: none;
@@ -316,18 +329,18 @@ html.dark .more-menu-dropdown,
 }
 
 .menu-item span {
-  color: #fafafa;
+  color: #18181b;
 }
 
 .menu-item:hover,
 .menu-item.active {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fafafa;
+  background: #e4e4e7;
+  color: #18181b;
 }
 
 .menu-item:hover span,
 .menu-item.active span {
-  color: #fafafa;
+  color: #18181b;
 }
 
 html.dark .menu-item,
@@ -372,6 +385,14 @@ html.dark .menu-item.active span,
   transition: opacity var(--transition-fast), color var(--transition-fast);
 }
 
+.menu-item:hover .menu-shortcut,
+.menu-item:focus .menu-shortcut,
+.menu-item:focus-within .menu-shortcut,
+.menu-item.active .menu-shortcut {
+  opacity: 1;
+  color: #18181b !important;
+}
+
 html.dark .menu-shortcut,
 html.dark .menu-item .menu-shortcut,
 [data-theme="dark"] .menu-shortcut,
@@ -379,10 +400,6 @@ html.dark .menu-item .menu-shortcut,
   color: #8e8e93 !important;
 }
 
-.menu-item:hover .menu-shortcut,
-.menu-item:focus .menu-shortcut,
-.menu-item:focus-within .menu-shortcut,
-.menu-item.active .menu-shortcut,
 html.dark .menu-item:hover .menu-shortcut,
 html.dark .menu-item:focus .menu-shortcut,
 html.dark .menu-item:focus-within .menu-shortcut,
@@ -401,7 +418,7 @@ html.dark .menu-item.active .menu-shortcut,
 
 .menu-divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.08);
+  background: #f0f0f2;
   margin: 4px 2px;
 }
 
@@ -414,7 +431,7 @@ html.dark .menu-divider,
 .typeface-submenu {
   display: none;
   flex-direction: column;
-  background: #141416;
+  background: #e4e4e7;
   border: none;
   outline: none;
   border-radius: 6px;
@@ -444,23 +461,23 @@ html.dark .typeface-submenu,
   font-size: 12.5px;
   border-radius: 4px;
   cursor: pointer;
-  color: #d4d4d8 !important;
+  color: #18181b !important;
   transition: all var(--transition-fast);
 }
 
 .submenu-item span {
-  color: #000000 !important;
+  color: #18181b !important;
 }
 
 .submenu-item:hover {
-  background: #f4f4f5;
-  color: #000000 !important;
+  background: #d4d4d8;
+  color: #18181b !important;
 }
 
 .submenu-item.active {
-  color: #000000 !important;
+  color: #18181b !important;
   font-weight: 500;
-  background: #ececef;
+  background: #d4d4d8;
 }
 
 html.dark .submenu-item,
@@ -487,7 +504,7 @@ html.dark .submenu-item.active,
 
 .submenu-item .check-icon {
   opacity: 0;
-  color: #000000;
+  color: #18181b;
 }
 
 html.dark .submenu-item .check-icon,
